@@ -7,18 +7,18 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
-<base href="<%=path%>/">
-<title>信息管理系统项目</title> 
+<base href="<%=basePath%>">
+<title>信息管理系统</title> 
 <meta http-equiv="pragma" content="no-cache">
 <meta http-equiv="cache-control" content="no-cache">
 <meta http-equiv="expires" content="0">
-<meta http-equiv="keywords" content="keyword1,keyword2,keyword3">
+<meta http-equiv="keywords" content="信息管理系统">
 <meta http-equiv="description" content="This is my page"> 
 
 <link rel="stylesheet" type="text/css" href="<%=path%>/js/jquery-easyui-1.4.3/themes/bootstrap/easyui.css?a=<%=Math.random() %>" >
 <link rel="stylesheet" type="text/css" href="<%=path%>/js/jquery-easyui-1.4.3/themes/icon.css" >
-<link rel="stylesheet" type="text/css" href="<%=path%>/css/homePage.css" >
-<link rel="stylesheet" type="text/css" href="<%=path%>/css/index.css?a=<%=Math.random() %>" >
+<link rel="stylesheet" type="text/css" href="<%=path%>/css/homePage.css?a=<%=Math.random() %>" >
+<link rel="stylesheet" type="text/css" href="<%=path%>/css/common.css" >
 <script type="text/javascript" src="<%=path%>/js/jquery-easyui-1.4.3/jquery.min.js"></script>
 <script type="text/javascript" src="<%=path%>/js/jquery-easyui-1.4.3/jquery.easyui.min.js"></script>
 <script type="text/javascript" src="<%=path%>/js/jquery-easyui-1.4.3/locale/easyui-lang-zh_CN.js" ></script>
@@ -58,7 +58,6 @@ $(document).ready(function() {
 				$('#navMenu').append(li);
 				if (isFirstMenu) {
 					li.click();
-					//openLeftMenu(e);
 					isFirstMenu = false;
 					curOpen = e.id;
 				}
@@ -72,42 +71,85 @@ $(document).ready(function() {
 //展开左侧菜单
 function openLeftMenu(navMenuNode) {
 	$('#leftLayout').empty();
+	$('#page').panel('clear');
+	/*
 	$('#leftLayout').panel({
 		title: navMenuNode.name,
 		iconCls: navMenuNode.iconClass
 	});
-	
-	$('#page').panel('clear');
-	
-	
+	*/
 	if (!navMenuNode.children || navMenuNode.children.length == 0) return;
+	//2级菜单按sort_id排序
+	navMenuNode.children.sort(function(a, b) {
+		return a.sortId - b.sortId;
+	});
+	
+	
+	
+	
+	
 	
 	
 	//创建菜单组
-	var leftMenu = $('<div id="leftMenu" class="easyui-accordion" style="width: 100%;" ></div>');
+	
+	/*
+	var leftMenu = $('<div class="easyui-accordion" style="width: 100%;" ></div>');
 	$('#leftLayout').append(leftMenu);
 	leftMenu.accordion({
 		border: false 
 	});
-	
-	//子菜单按sort_id菜单排序
-	navMenuNode.children.sort(function(a, b) {
-		return a.sortId - b.sortId;
-	}); 
-	
-	//遍历子菜单添加到菜单组
-	$.each(navMenuNode.children, function(j, o) {
+	*/
 
-		//按sort_id菜单排序
-		o.children.sort(function(a, b) {
-			return a.sortId - b.sortId;
-		});
-		var menuLv2 = $('<ul class="menuAccordion"></ul>');
-		$.each(o.children, function(idx, node) {
+	var leftMenu = $('<div class="easyui-accordion" style="width: 100%;" ></div>').appendTo($('#leftLayout'));
+	var menuLv2 = $('<ul class="menuAccordion"></ul>').appendTo($('#leftLayout'));
+	leftMenu.accordion({border: false});
+	//遍历2级菜单组
+	$.each(navMenuNode.children, function(j, o) {
+		//是菜单组
+		if (o.menuType == '0') {
 			
-			if (node.visible == '1') {
-				var liStr = '<li class="unSelected"><span class="icon ' + node.iconClass + '"></span>';
-				liStr += '<span class="text">' + node.name + '</span></li>';
+			var menuLv2Group = null;
+			//按sort_id菜单排序
+			if (o.children) {
+				o.children.sort(function(a, b) {
+					return a.sortId - b.sortId;
+				});
+			
+				menuLv2Group = $('<ul class="menuAccordion"></ul>');
+				//遍历3级菜单
+				$.each(o.children, function(idx, node) {
+					
+					if (node.visible == '1') {
+						var liStr = '<li class="unSelected"><span class="icon ' + node.iconClass + '"></span>';
+						liStr += '<span class="text">' + node.name + '</span></li>';
+						
+						var li = $(liStr);
+						li.click(function() {
+							$('.menuAccordion li[class="selected"]').removeClass('selected').addClass('unSelected');
+							$(this).removeClass('unSelected').addClass('selected');
+							
+							$('#page').panel({
+								href: '<%=path%>/forwardPage.do?address=' + node.address
+							});
+						});
+						
+						
+						menuLv2Group.append(li);
+					}
+				});
+			}
+			leftMenu.accordion('add', {
+				title: o.name,
+				iconCls: o.iconClass,
+				content: menuLv2Group,
+				selected: false
+			});
+			
+			
+		} else {
+			if (o.visible == '1') {
+				var liStr = '<li class="unSelected"><span class="icon ' + o.iconClass + '"></span>';
+				liStr += '<span class="text">' + o.name + '</span></li>';
 				
 				var li = $(liStr);
 				li.click(function() {
@@ -115,23 +157,17 @@ function openLeftMenu(navMenuNode) {
 					$(this).removeClass('unSelected').addClass('selected');
 					
 					$('#page').panel({
-						href: '<%=path%>/forwardPage.do?address=' + node.address
+						href: '<%=path%>/forwardPage.do?address=' + o.address
 					});
 				});
 				
-				
 				menuLv2.append(li);
 			}
-		});
 		
-		
-		leftMenu.accordion('add', {
-			title: o.name,
-			iconCls: o.iconClass,
-			content: menuLv2,
-			selected: false
-		});
+		}
+	
 	});
+		
 	leftMenu.accordion('select', 0);
 	
 }

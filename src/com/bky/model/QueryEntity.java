@@ -10,7 +10,7 @@ public class QueryEntity {
 	private String roleSid;
 	private List<String> roleSidList;
 	private String moduleSid;
-	private List<String> moduleSidList;
+	private List<Integer> moduleSidList;
 
 	public String getUsername() {
 		return username;
@@ -68,11 +68,11 @@ public class QueryEntity {
 		this.roleSidList = roleSidList;
 	}
 
-	public List<String> getModuleSidList() {
+	public List<Integer> getModuleSidList() {
 		return moduleSidList;
 	}
 
-	public void setModuleSidList(List<String> moduleSidList) {
+	public void setModuleSidList(List<Integer> moduleSidList) {
 		this.moduleSidList = moduleSidList;
 	}
 

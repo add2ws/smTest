@@ -76,7 +76,14 @@
   		</if>
   	</set>
   	where sid=#{sid,jdbcType=NUMERIC}
-  	
   </update>
+  
+  <delete id="deleteMenuWithChild" parameterType="java.lang.String">
+  	delete from T_SYS_MODULE where sid=#{sid,jdbcType=VARCHAR} or psid=#{sid,jdbcType=VARCHAR}
+  </delete>
+  
+  <delete id="deleteMenuRole" parameterType="java.lang.String">
+  	delete from T_SYS_ROLE_MODULE where module_sid=#{sid,jdbcType=VARCHAR}
+  </delete>
   
 </mapper>

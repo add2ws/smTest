@@ -24,7 +24,8 @@ $(function() {
 		queryParams: {"uid": '<%=uid%>'},
 		onLoadSuccess: function(data) {
 			$(".datagrid-cell .easyui-linkbutton").linkbutton({plain: false});
-			$('#list').datagrid('clearSelections');
+			$(this).datagrid('clearSelections');
+			$(this).datagrid('resize');
 		},
 		/*
 		frozenColumns: [ [ {
@@ -60,10 +61,7 @@ $(function() {
 });
 
 function doSearch(value) {
-	$('#list').datagrid({
-		pageNumber: 1,
-		queryParams: {"roleName": value}
-	});
+	$('#list').datagrid('load', {"roleName": value});
 }
 
 function addUser() {

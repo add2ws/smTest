@@ -1,9 +1,25 @@
 @CHARSET "UTF-8";
 
+body {
+	font-family: Arial;
+}
+
+a:focus,input {
+	outline:none;
+}
+
 .panel-title {
   color: #555;
-  font-family: Microsoft YaHei;
+  text-indent: 5px;
 }
+.combobox-item {
+	cursor: pointer;	
+}
+
+.accordion-body {
+	border: 0;	
+}
+
 
 .navMenuList {
 	position: absolute;
@@ -28,6 +44,7 @@
 	font-weight: bold;
 	color: #fff;
 	background-repeat: no-repeat;
+	
 }
 
 .navMenuList .unSelected:hover {
@@ -72,6 +89,3 @@
 	color: #fff;
 }
 
-.combobox-item {
-	cursor: pointer;	
-}

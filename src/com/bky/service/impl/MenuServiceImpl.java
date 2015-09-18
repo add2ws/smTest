@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.ibatis.session.SqlSession;
 import org.springframework.stereotype.Service;
 
 import com.bky.model.QueryEntity;
@@ -82,29 +83,40 @@ public class MenuServiceImpl extends CommonDaoServiceImpl implements MenuService
 
 	@Override
 	public void modifyAuths(String menuSid, String auths) throws Exception {
-		QueryEntity query = new QueryEntity();
-		query.setModuleSid(menuSid);
 		
-		//删除关系表里的关系
+		if (menuSid == null || menuSid.equals("")) throw new Exception("菜单sid传入为空");
+
+		//删除关系表
 		Map<String, String> authMap = new ObjectMapper().readValue(auths, Map.class);
+		List<Integer> menuSidList = new ObjectMapper().readValue(menuSid, List.class);
+		if (authMap == null) return;
 		Iterator<String> ml = authMap.keySet().iterator();
 		List<String> roles = new ArrayList<String>();
 		List<RoleModule> rmList = new ArrayList<RoleModule>();
 		while (ml.hasNext()) {
 			String key = ml.next();
 			roles.add(key);
-			RoleModule rm = new RoleModule(new BigDecimal(key), new BigDecimal(menuSid), Integer.valueOf(authMap.get(key)));
-			rmList.add(rm);
+			for (Integer mSid : menuSidList) {
+				RoleModule rm = new RoleModule(new BigDecimal(key), new BigDecimal(mSid), Integer.valueOf(authMap.get(key)));
+				rmList.add(rm);
+			}
 		}
 		
+		QueryEntity query = new QueryEntity();
+		query.setModuleSidList(menuSidList);
 		query.setRoleSidList(roles);
 		this.getCommonDao().delete("role.deleteRoleModule", query);
 
-		//添加关系表关系
+		//插入关系表
 		for (RoleModule roleModule : rmList) {
-			
 			this.getCommonDao().insert("role.insertRoleModule", roleModule);
 		}
+	}
+
+	@Override
+	public void deleteMenu(String sid) throws Exception {
+		this.getCommonDao().delete("menu.deleteMenuWithChild", sid);
+		this.getCommonDao().delete("menu.deleteMenuRole", sid);
 	}
 	
 }

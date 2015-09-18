@@ -14,17 +14,17 @@ $(function() {
 		url : '<%=path%>/userList.do',
 		loadMsg : '数据加载中......',
 		fit: true,
-    	striped: false,
 		remoteSort: true,
 		toolbar: '#divToolbar',
 		pagination: true,
 		rownumbers: true,
 		fitColumns: true,
 		singleSelect:true,
-		queryParams: {"uid": '<%=uid%>'},
+		queryParams: {},
 		onLoadSuccess: function(data) {
 			$(".datagrid-cell .easyui-linkbutton").linkbutton({plain: false});
-			$('#list').datagrid('clearSelections');
+			$(this).datagrid('clearSelections');
+			$(this).datagrid('resize');
 		},
 		/*
 		frozenColumns: [ [ {
@@ -77,8 +77,8 @@ $(function() {
 			align: 'center',
 			fixed: true,
 			formatter: function(val, row, idx) {
-//				return '<table cellpadding="0" cellspacing="0" border="0"><tr><td><a  class="easyui-linkbutton" iconCls="icon-role" onclick="editRole(\'' + row.sid + '\')">分配角色</a></td><td><a class="datagrid-btn-separator"></a></td><td><a  class="easyui-linkbutton" iconCls="icon-edit" onclick="editRow(true, ' + idx + ')">编辑</a></td><td><a class="datagrid-btn-separator"></a></td><td><a   class="easyui-linkbutton" iconCls="icon-cancel" onclick="deleteRow(\'' + row.sid + '\')">删除</a></td></tr></table>';
-				return '<a class="easyui-linkbutton" iconCls="icon-role" onclick="editRole(\'' + row.sid + '\')">分配角色</a>&nbsp;<a class="easyui-linkbutton" iconCls="icon-edit" onclick="editRow(true, ' + idx + ')">编辑</a>&nbsp;<a class="easyui-linkbutton" iconCls="icon-cancel" onclick="deleteRow(\'' + row.sid + '\')">删除</a>';
+				return '<table cellpadding="0" cellspacing="0" border="0"><tr><td><a  class="easyui-linkbutton" iconCls="icon-role" onclick="editRole(\'' + row.sid + '\')">分配角色</a></td><td><a class="datagrid-btn-separator"></a></td><td><a  class="easyui-linkbutton" iconCls="icon-edit" onclick="editRow(true, ' + idx + ')">编辑</a></td><td><a class="datagrid-btn-separator"></a></td><td><a   class="easyui-linkbutton" iconCls="icon-cancel" onclick="deleteRow(\'' + row.sid + '\')">删除</a></td></tr></table>';
+//				return '<a class="easyui-linkbutton" iconCls="icon-role" onclick="editRole(\'' + row.sid + '\')">分配角色</a>&nbsp;<a class="easyui-linkbutton" iconCls="icon-edit" onclick="editRow(true, ' + idx + ')">编辑</a>&nbsp;<a class="easyui-linkbutton" iconCls="icon-cancel" onclick="deleteRow(\'' + row.sid + '\')">删除</a>';
 
 			}
 		}
@@ -91,9 +91,8 @@ function editRole(sid) {
 }
 
 function doSearch(value) {
-	$('#list').datagrid({
-		pageNumber: 1,
-		queryParams: {"username": value}
+	$('#list').datagrid('load', {
+		username: value
 	});
 }
 
@@ -129,7 +128,7 @@ function addUser() {
 </script>
 
 <div class="easyui-layout" fit="true">
-	<div data-options="region:'center',split:false, border:false">
+	<div data-options="region:'center', split:false, border:false">
 		<div id="divToolbar">
 			<table cellpadding="0" cellspacing="0" border="0">
 				<tr>

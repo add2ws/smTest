@@ -25,12 +25,15 @@
    <select id="menuToRoleListCount" resultType="java.math.BigDecimal" parameterType="com.bky.model.QueryEntity">
   		select count(1)
   		from t_sys_role a
-  		left join T_SYS_ROLE_MODULE b on a.sid = b.role_sid and b.module_sid=#{moduleSid,jdbcType=NUMERIC}
-
+  		left join T_SYS_ROLE_MODULE b on a.sid = b.role_sid 
+  		<if test="moduleSid != null and moduleSid != ''">
+  		 	and b.module_sid=#{moduleSid,jdbcType=NUMERIC}
+  		</if>
+		<if test="moduleSid == null or moduleSid == ''">
+  		 	and 1=0
+  		</if>
 	  	<if test="roleName != null and roleName != ''">
-	  		<where>
-	  			a.role_name like '%'||#{roleName,jdbcType=VARCHAR}||'%'
-	  		</where>
+  			where a.role_name like '%'||#{roleName,jdbcType=VARCHAR}||'%'
 	  	</if>
   </select>
   <select id="menuToRoleList" resultType="com.bky.model.RoleModule" parameterType="com.bky.model.QueryEntity">
@@ -40,13 +43,17 @@
 			nvl(b.right, 0) as right
 			
 	  		from t_sys_role a
-	  		left join T_SYS_ROLE_MODULE b on a.sid = b.role_sid and b.module_sid=#{moduleSid,jdbcType=NUMERIC}
-
-	  	<if test="roleName != null and roleName != ''">
-	  		<where>
-	  			a.role_name like '%'||#{roleName,jdbcType=VARCHAR}||'%'
-	  		</where>
-	  	</if>
+	  		left join T_SYS_ROLE_MODULE b on a.sid = b.role_sid
+	  		<if test="moduleSid != null and moduleSid != ''">
+	  		 	and b.module_sid=#{moduleSid,jdbcType=NUMERIC}
+	  		</if>
+	  		<if test="moduleSid == null or moduleSid == ''">
+	  		 	and 1=0
+	  		</if>
+	
+		  	<if test="roleName != null and roleName != ''">
+	  			where a.role_name like '%'||#{roleName,jdbcType=VARCHAR}||'%'
+		  	</if>
 		order by sort_id
   </select>
   
@@ -56,7 +63,14 @@
   </insert>
   
   <delete id="deleteRoleModule" parameterType="com.bky.model.QueryEntity">
-  	delete from T_SYS_ROLE_MODULE where module_sid=#{moduleSid,jdbcType=NUMERIC} and role_sid in (
+  	delete from T_SYS_ROLE_MODULE where module_sid in (
+  		<trim suffix="" suffixOverrides=",">
+		  	<foreach collection="moduleSidList" item="sid">
+		  		#{sid,jdbcType=NUMERIC},
+		  	</foreach>
+	  	</trim>
+  	
+  	) and role_sid in (
   		<trim suffix="" suffixOverrides=",">
 		  	<foreach collection="roleSidList" item="sid">
 		  		#{sid,jdbcType=NUMERIC},
