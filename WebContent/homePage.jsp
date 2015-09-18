@@ -56,9 +56,9 @@ $(document).ready(function() {
 					}
 				});
 				$('#navMenu').append(li);
-
 				if (isFirstMenu) {
-					openLeftMenu(e);
+					li.click();
+					//openLeftMenu(e);
 					isFirstMenu = false;
 					curOpen = e.id;
 				}
@@ -93,7 +93,7 @@ function openLeftMenu(navMenuNode) {
 	//子菜单按sort_id菜单排序
 	navMenuNode.children.sort(function(a, b) {
 		return a.sortId - b.sortId;
-	});
+	}); 
 	
 	//遍历子菜单添加到菜单组
 	$.each(navMenuNode.children, function(j, o) {
