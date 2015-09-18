@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="role" >
+
+ <select id="roleListCount" resultType="java.math.BigDecimal" parameterType="com.bky.model.QueryEntity">
+  	select count(1) from T_SYS_ROLE
+  	<if test="roleName != null">
+  		<where>
+  			role_name like '%'||#{roleName,jdbcType=VARCHAR}||'%'
+  		</where>
+  	</if>
+  </select>
+  <select id="roleList" resultType="com.bky.model.Role" parameterType="com.bky.model.QueryEntity">
+  	select * from T_SYS_ROLE
+ 	<if test="roleName != null">
+  		<where>
+  			role_name like '%'||#{roleName,jdbcType=VARCHAR}||'%'
+  		</where>
+  	</if>
+	order by sort_id
+  	
+  </select>
+  
+  
+   <select id="menuToRoleListCount" resultType="java.math.BigDecimal" parameterType="com.bky.model.QueryEntity">
+  		select count(1)
+  		from t_sys_role a
+  		left join T_SYS_ROLE_MODULE b on a.sid = b.role_sid and b.module_sid=#{moduleSid,jdbcType=NUMERIC}
+
+	  	<if test="roleName != null and roleName != ''">
+	  		<where>
+	  			a.role_name like '%'||#{roleName,jdbcType=VARCHAR}||'%'
+	  		</where>
+	  	</if>
+  </select>
+  <select id="menuToRoleList" resultType="com.bky.model.RoleModule" parameterType="com.bky.model.QueryEntity">
+	  	select 
+			a.sid as roleSid,
+			a.role_name,
+			nvl(b.right, 0) as right
+			
+	  		from t_sys_role a
+	  		left join T_SYS_ROLE_MODULE b on a.sid = b.role_sid and b.module_sid=#{moduleSid,jdbcType=NUMERIC}
+
+	  	<if test="roleName != null and roleName != ''">
+	  		<where>
+	  			a.role_name like '%'||#{roleName,jdbcType=VARCHAR}||'%'
+	  		</where>
+	  	</if>
+		order by sort_id
+  </select>
+  
+  <insert id="insertRoleModule" parameterType="com.bky.model.RoleModule">
+  	insert into T_SYS_ROLE_MODULE (pid, role_sid, module_sid, right)
+  	values(SEQ_SYS_ROLE_MODULE.nextval, #{roleSid,jdbcType=NUMERIC}, #{moduleSid,jdbcType=NUMERIC}, #{right,jdbcType=NUMERIC})
+  </insert>
+  
+  <delete id="deleteRoleModule" parameterType="com.bky.model.QueryEntity">
+  	delete from T_SYS_ROLE_MODULE where module_sid=#{moduleSid,jdbcType=NUMERIC} and role_sid in (
+  		<trim suffix="" suffixOverrides=",">
+		  	<foreach collection="roleSidList" item="sid">
+		  		#{sid,jdbcType=NUMERIC},
+		  	</foreach>
+	  	</trim>
+  	)
+  	
+  </delete>
+  
+</mapper>

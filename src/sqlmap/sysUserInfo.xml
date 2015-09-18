@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="sysUserInfo" >
+
+
+  <select id="userListCount" resultType="java.math.BigDecimal" parameterType="com.bky.model.QueryEntity">
+  	select count(1) from T_SYS_USERINFO
+  	<if test="username != null">
+  		<where>
+  			username like '%'||#{username,jdbcType=VARCHAR}||'%'
+  		</where>
+  	</if>
+	
+  </select>
+  <select id="userList" resultType="com.bky.model.SysUserinfo" parameterType="com.bky.model.QueryEntity">
+  	select 
+  		SID,
+  		USERID,
+		PASSWD,
+		USERNAME,
+		LAST_LOGIN_TIME,
+		LAST_IP,
+		LOGIN_TIMES,
+		THEME,
+		REG_TIME,
+		ORG_SID,
+		SEX,
+		BIRTHDAY,
+		RECORD_DATE,
+		STATE,
+		REGISTER_TYPE,
+		AUDIT_OPINION,
+		AUDIT_RES,
+		AUDIT_USERID,
+		AUDIT_DATE,
+		DELETED,
+		OUT_DATE,
+		USER_TYPE,
+   		(select WMSYS.WM_CONCAT(r.role_name) from T_SYS_USER_ROLE l, t_sys_role r where l.USER_SID = a.sid and l.role_sid= r.sid ) roles 
+		
+	 from T_SYS_USERINFO a
+ 	<if test="username != null">
+  		<where>
+  			username like '%'||#{username,jdbcType=VARCHAR}||'%'
+  		</where>
+  	</if>
+  	
+  	<if test="sort == null or sort == ''">
+	  	order by reg_time desc
+  	</if>
+  	<if test="sort == 'regTime'">
+	  	order by reg_time ${order}
+  	</if>
+  	<if test="sort == 'lastLoginTime'">
+	  	order by last_login_time ${order}
+  	</if>
+  	
+  </select>
+  
+  
+  
+</mapper>

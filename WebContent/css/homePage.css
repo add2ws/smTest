@@ -1,0 +1,77 @@
+@CHARSET "UTF-8";
+
+.panel-title {
+  color: #555;
+  font-family: 微软雅黑;
+}
+
+.navMenuList {
+	position: absolute;
+	left: 120px;
+	bottom: 4px;
+	list-style: none;
+	margin: 0;
+	padding: 0; 
+	border: 0;
+}
+
+.navMenuList li {
+	float: left;
+	margin: 0;
+	padding: 0;
+	background-image: url('../images/bg.gif');
+	width: 90px;
+	height: 37px;
+	line-height: 37px;
+	text-align: center;
+	font-size: 12px;
+	font-weight: bold;
+	color: #fff;
+	background-repeat: no-repeat;
+}
+
+.navMenuList .unSelected:hover {
+	background-image: url('../images/onbg.gif');
+	cursor: pointer;
+}
+
+.navMenuList .selected {
+	background-image: url('../images/onbg.gif');
+	cursor: pointer;
+}
+
+.menuAccordion {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.menuAccordion li {
+	padding: 6px 16px; 
+	border-bottom: dotted #bcbcbc 1px; 
+	cursor: pointer;
+}
+
+.menuAccordion .icon {
+	display: inline-block; 
+	vertical-align: middle; 
+	width: 16px; 
+	height: 16px;
+}
+.menuAccordion .text {
+	display: inline-block; 
+	vertical-align: middle; 
+	text-indent: 6px;
+}
+.menuAccordion .unSelected:hover {
+	background-color: #e6e6e6;
+}
+
+.menuAccordion .selected {
+	background-color: #0081c2;
+	color: #fff;
+}
+
+.combobox-item {
+	cursor: pointer;	
+}
