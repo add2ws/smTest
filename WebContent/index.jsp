@@ -6,6 +6,6 @@
 <title>Insert title here</title>
 </head>
 <body>
-这是一个空页面 
+这是一个空页面测试用例404
 </body>
 </html>
