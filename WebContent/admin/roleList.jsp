@@ -107,7 +107,7 @@ function addUser() {
 						<a class="datagrid-btn-separator"></a>
 					</td>
 					<td>
-						<input class="easyui-searchbox" id="xm" data-options="prompt:'角色名模糊搜索', searcher:doSearch" style="width:135px" />
+						<input class="easyui-searchbox" id="xm" data-options="prompt:'按角色名搜索', searcher:doSearch" style="width:135px" />
 					</td>
 				</tr>
 			</table>
