@@ -9,12 +9,16 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
   background: #FF6666;
   color: #fff;
 }
+
+.modified {
+	border: solid 2px red;
+}
 </style>
 <script type="text/javascript">
 var contextPath = "<%=path%>";
 
 $(function() {
-	reloadMenu();
+	loadMenu();
 	
 	 $('#searchBox').textbox({
 		 prompt: '输入名称过滤',
@@ -60,7 +64,7 @@ $(function() {
 	
 });
 
-function reloadMenu() {
+function loadMenu() {
 	$('#sysMenuTree').tree({
 		url: contextPath + '/menuTree.do',
 		lines: true,
@@ -160,7 +164,7 @@ function submitForm(){
         		timeout: 3000,
         		showType: 'slide'
         	});
-        	reloadMenu();
+        	$('#sysMenuTree').tree('reload');
         }
     });
 }
@@ -172,7 +176,7 @@ function deleteMenu() {
 			var url = contextPath + '/deleteMenu.do';
 			$.post(url, {sid: menuSid}, function(data) {
 				if (data.success) {
-					reloadMenu();
+					$('#sysMenuTree').tree('reload');
 				}
 				
 				$.messager.show({
@@ -229,7 +233,7 @@ function editMenu(add) {
 				        	});
 				        	
 				        	if (data.success) {
-					        	reloadMenu();
+					        	$('#sysMenuTree').tree({url: contextPath + '/menuTree.do'});
 					        	$("#editMenu").dialog("close");
 				        	}
 				        }
@@ -250,9 +254,9 @@ function editMenu(add) {
 	
 }
 
-var modifyAuths;
+var modifyAuths = {};
 function saveAuths(batch) {
-	var menuSid=[];
+	var menuSid = [];
 	if (batch) {
 		$.each($('#sysMenuTree').tree('getChecked'), function(i, e) {
 			menuSid.push(e.sid);
@@ -266,8 +270,13 @@ function saveAuths(batch) {
 	var auths = JSON.stringify(modifyAuths);
 	$.post(url, {menuSid: menuSid, auths: auths}, function(data) {
 		if (data.success) {
-			modifyAuths = null;
+			modifyAuths = {};
 			$('#roleWindow').dialog('close');
+			
+			if (batch) {
+				$('#sysMenuTree').tree('reload');
+			}
+			
 		}
 		$.messager.show({
        		title: '提示信息',
@@ -281,18 +290,19 @@ function saveAuths(batch) {
 }
 
 function cancelSaveAuths() {
-	if (modifyAuths == null) {
+	if ($.isEmptyObject(modifyAuths)) {
 		$("#roleWindow").dialog("close");
 	} else {
 		$.messager.confirm('提示信息', '确定取消更改吗？', function(r) {
 			if (r) {
-				modifyAuths = null;
+				modifyAuths = {};
 				$("#roleWindow").dialog("close");
 			}
 		});
 	}
 }
 
+//角色列表载入
 function roleMenuListInit(batch) {
 	var menuSid = null;
 	if (!batch) {
@@ -313,20 +323,39 @@ function roleMenuListInit(batch) {
 		queryParams: {menuSid: menuSid},
 		onLoadSuccess: function(data) {
 			$(".datagrid-cell .easyui-combobox").combobox({
+			
+				//记录权限修改
 				onSelect: function (row) {
-					$('#saveAuthBtn').linkbutton('enable');
-					var t = row.value.split('@');
-					var roleSid = t[0];
-					var right = t[1];
-					if (modifyAuths == null) {
-						modifyAuths = {};
+					var roleSid = $(this).attr('id');
+					var right = row.value;
+					if (right == $(this).val()) {
+						delete modifyAuths[roleSid];
+						$(this).next('.combo').removeClass('modified');
+					} else {
+						modifyAuths[roleSid] = right;
+						$(this).next('.combo').addClass('modified');
 					}
-					modifyAuths[roleSid] = right;
+					
+					//保存按钮变灰
+					if ($.isEmptyObject(modifyAuths)) {
+						$('#saveAuthBtn').linkbutton('disable');
+					} else {
+						$('#saveAuthBtn').linkbutton('enable');
+					}
+
+				},
+				
+				//初始化中修改过权限的
+				onLoadSuccess: function() {
+					var roleSid = $(this).attr('id');
+					var right = modifyAuths[roleSid];
+					if (right) {
+						$(this).combobox('select', right);
+					}
 				}
 				
 			});
-			$('#list').datagrid('clearSelections');
-
+			
 		}, columns: [ [  {
 			field: 'roleName',
 			title: '角色名称',
@@ -340,21 +369,21 @@ function roleMenuListInit(batch) {
 			align: 'center',
 			fixed: true,
 			formatter: function(val, row, idx) {
-				var html = '<select class="easyui-combobox" editable="false" panelHeight="80">';
+				var html = '<select id="' + row.roleSid + '" class="easyui-combobox" editable="false" panelHeight="80" >';
 				if (val == '0') {
-					html += '<option selected="true" value="' + row.roleSid + '@0" >无权限</option>';
+					html += '<option selected="true" value="0" >无权限</option>';
 				} else {
-					html += '<option value="' + row.roleSid + '@0" >无权限</option>';
+					html += '<option value="0" >无权限</option>';
 				}
 				if (val == '1') {
-					html += '<option selected="true" value="' + row.roleSid + '@1">可读</option>';
+					html += '<option selected="true" value="1">可读</option>';
 				} else {
-					html += '<option value="' + row.roleSid + '@1">可读</option>';
+					html += '<option value="1">可读</option>';
 				}
 				if (val == '2') {
-					html += '<option selected="true" value="' + row.roleSid + '@2">可写</option>';
+					html += '<option selected="true" value="2">可写</option>';
 				} else {
-					html += '<option value="' + row.roleSid + '@2">可写</option>';
+					html += '<option value="2">可写</option>';
 				}
 				
 				html += '</select>';
@@ -367,12 +396,15 @@ function roleMenuListInit(batch) {
 }
 
 function authority(batch) {
-	modifyAuths = null;
+	modifyAuths = {};
 	$('#saveAuthBtn').linkbutton('disable');
 	$('#roleWindow').dialog('open');
-	$('#saveAuthBtn').unbind('click');
-	$('#saveAuthBtn').bind('click', function() {
-		saveAuths(batch);
+
+	$('#saveAuthBtn').linkbutton({
+		onClick: function() {
+			saveAuths(batch);
+		}
+		
 	});
 	roleMenuListInit(batch);
 }
@@ -380,7 +412,9 @@ function authority(batch) {
 </script>
 <div class="easyui-layout" fit="true">
 	<div id="lm" data-options="region:'west', split:true, border:true, collapsible:false" style="width: 350px; padding: 8px; ">
+		<!-- 
 		<input id="searchBox" style=""/>
+		 -->
 		<ul id="sysMenuTree">
 		</ul>
 	</div> 

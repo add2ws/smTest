@@ -8,9 +8,9 @@ public class QueryEntity {
 	private String sort;
 	private String order;
 	private String roleSid;
-	private List<String> roleSidList;
+	private List<?> roleSidList;
 	private String moduleSid;
-	private List<Integer> moduleSidList;
+	private List<?> moduleSidList;
 
 	public String getUsername() {
 		return username;
@@ -60,19 +60,19 @@ public class QueryEntity {
 		this.moduleSid = moduleSid;
 	}
 
-	public List<String> getRoleSidList() {
+	public List<?> getRoleSidList() {
 		return roleSidList;
 	}
 
-	public void setRoleSidList(List<String> roleSidList) {
+	public void setRoleSidList(List<?> roleSidList) {
 		this.roleSidList = roleSidList;
 	}
 
-	public List<Integer> getModuleSidList() {
+	public List<?> getModuleSidList() {
 		return moduleSidList;
 	}
 
-	public void setModuleSidList(List<Integer> moduleSidList) {
+	public void setModuleSidList(List<?> moduleSidList) {
 		this.moduleSidList = moduleSidList;
 	}
 

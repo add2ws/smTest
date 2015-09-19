@@ -90,20 +90,12 @@ function openLeftMenu(navMenuNode) {
 	
 	
 	
-	//创建菜单组
-	
-	/*
-	var leftMenu = $('<div class="easyui-accordion" style="width: 100%;" ></div>');
-	$('#leftLayout').append(leftMenu);
-	leftMenu.accordion({
-		border: false 
-	});
-	*/
-
+	//创建菜单组容器
 	var leftMenu = $('<div class="easyui-accordion" style="width: 100%;" ></div>').appendTo($('#leftLayout'));
-	var menuLv2 = $('<ul class="menuAccordion"></ul>').appendTo($('#leftLayout'));
 	leftMenu.accordion({border: false});
-	//遍历2级菜单组
+	//创建子菜单容器
+	var menuLv2 = $('<ul class="menuAccordion"></ul>').appendTo($('#leftLayout'));
+	//遍历2级菜单
 	$.each(navMenuNode.children, function(j, o) {
 		//是菜单组
 		if (o.menuType == '0') {
@@ -145,7 +137,8 @@ function openLeftMenu(navMenuNode) {
 				selected: false
 			});
 			
-			
+		
+		//是子菜单
 		} else {
 			if (o.visible == '1') {
 				var liStr = '<li class="unSelected"><span class="icon ' + o.iconClass + '"></span>';
@@ -167,7 +160,11 @@ function openLeftMenu(navMenuNode) {
 		}
 	
 	});
-		
+	
+	//二级子菜单展开时的动画效果
+	menuLv2.hide();
+	menuLv2.slideDown();
+	//默认展开第一个菜单组
 	leftMenu.accordion('select', 0);
 	
 }
