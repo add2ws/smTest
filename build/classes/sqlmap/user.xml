@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="sysUserInfo" >
-
+<mapper namespace="user" >
 
   <select id="userListCount" resultType="java.math.BigDecimal" parameterType="com.bky.model.QueryEntity">
   	select count(1) from T_SYS_USERINFO
@@ -57,6 +56,24 @@
   	
   </select>
   
+  <select id="getNextUserSid" resultType="java.math.BigDecimal">
+  	select SEQ_T_SYS_USERINFO.nextval from dual
+  </select>
+
+  <insert id="insertUserRole" parameterType="com.bky.model.UserRole">
+	insert into T_SYS_USER_ROLE (USER_SID, ROLE_SID)values(#{userSid,jdbcType=NUMERIC}, #{roleSid,jdbcType=NUMERIC})  	
+  </insert>
   
+  <insert id="insertUser" parameterType="com.bky.model.SysUserinfo">
+	insert into T_SYS_USERINFO (sid, userid, passwd, reg_time)
+	values(#{sid,jdbcType=NUMERIC}, #{userid,jdbcType=VARCHAR}, #{passwd,jdbcType=VARCHAR}, #{regTime,jdbcType=DATE})  	
+  </insert>
+  
+  <delete id="deleteUser" parameterType="java.math.BigDecimal">
+  		delete from T_SYS_USERINFO where sid=#{sid,jdbcType=NUMERIC}
+  </delete>
+  <delete id="deleteUserRole" parameterType="java.math.BigDecimal">
+  		delete from T_SYS_USER_ROLE where user_sid=#{sid,jdbcType=NUMERIC}
+  </delete>
   
 </mapper>

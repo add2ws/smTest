@@ -17,7 +17,7 @@ public interface MenuService {
 
 	public ResponseListEntity menuToRoleList(String roleName, String menuSid, int page, int rows) throws Exception;
 
-	public void modifyAuths(String menuSid, String auths) throws Exception;
+	public void modifyAuths(String menuSid) throws Exception;
 
 	public void deleteMenu(String sid) throws Exception;
 	

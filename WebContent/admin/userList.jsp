@@ -1,16 +1,20 @@
-<%@page import="com.bky.util.Const"%>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%
 String path = request.getContextPath();
 String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+path+"/";
-String uid = (String) request.getSession().getAttribute(Const.LOGIN_UID_SESSION_KEY);
 %>
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>信息管理系统</title> 
+<jsp:include page="/page/inc_header.jsp"></jsp:include>
 
 <script type="text/javascript">
+
 $(function() {
 	$('#list').datagrid({
-//		title: '用户管理',
+//		title: '账户管理',
 		url : '<%=path%>/userList.do',
 		loadMsg : '数据加载中......',
 		fit: true,
@@ -26,12 +30,6 @@ $(function() {
 			$(this).datagrid('clearSelections');
 			$(this).datagrid('resize');
 		},
-		/*
-		frozenColumns: [ [ {
-			field : 'sbxxsid',
-			checkbox : false
-		} ] ],
-		*/
 		columns: [ [  {
 			field: 'userid',
 			title: '登陆ID',
@@ -40,7 +38,7 @@ $(function() {
 			
 		}, {
 			field: 'username',
-			title: '用户名',
+			title: '账户名',
 			width: 120,
 			align: 'center'
 			
@@ -77,8 +75,8 @@ $(function() {
 			align: 'center',
 			fixed: true,
 			formatter: function(val, row, idx) {
-				return '<table cellpadding="0" cellspacing="0" border="0"><tr><td><a  class="easyui-linkbutton" iconCls="icon-role" onclick="editRole(\'' + row.sid + '\')">分配角色</a></td><td><a class="datagrid-btn-separator"></a></td><td><a  class="easyui-linkbutton" iconCls="icon-edit" onclick="editRow(true, ' + idx + ')">编辑</a></td><td><a class="datagrid-btn-separator"></a></td><td><a   class="easyui-linkbutton" iconCls="icon-cancel" onclick="deleteRow(\'' + row.sid + '\')">删除</a></td></tr></table>';
-//				return '<a class="easyui-linkbutton" iconCls="icon-role" onclick="editRole(\'' + row.sid + '\')">分配角色</a>&nbsp;<a class="easyui-linkbutton" iconCls="icon-edit" onclick="editRow(true, ' + idx + ')">编辑</a>&nbsp;<a class="easyui-linkbutton" iconCls="icon-cancel" onclick="deleteRow(\'' + row.sid + '\')">删除</a>';
+//				return '<table cellpadding="0" cellspacing="0" border="0"><tr><td><a  class="easyui-linkbutton" iconCls="icon-role" onclick="selectRoles(\'' + row.sid + '\')">分配角色</a></td><td><a class="datagrid-btn-separator"></a></td><td><a  class="easyui-linkbutton" iconCls="icon-edit" onclick="editRow(true, ' + idx + ')">编辑</a></td><td><a class="datagrid-btn-separator"></a></td><td><a   class="easyui-linkbutton" iconCls="icon-cancel" onclick="deleteRow(\'' + row.sid + '\')">删除</a></td></tr></table>';
+				return '<a class="easyui-linkbutton" iconCls="icon-role" onclick="selectRoles(\'' + row.sid + '\')">分配角色</a>&nbsp;<a class="easyui-linkbutton" iconCls="icon-edit" onclick="editUser(' + idx + ')">编辑</a>&nbsp;<a class="easyui-linkbutton" iconCls="icon-cancel" onclick="deleteUser(\'' + row.sid + '\')">删除</a>';
 
 			}
 		}
@@ -87,46 +85,204 @@ $(function() {
 	});
 });
 
-function editRole(sid) {
+//删除账户
+function deleteUser(userSid) {
+	$.messager.confirm('提示信息', '确认删除该账户吗？', function(r) {
+		if (r) {
+			var url = contextPath + '/deleteUser.do';
+			$.post(url, {sid: userSid}, function(data) {
+				if (data.success) {
+					$('#list').datagrid('reload');
+				}
+				$.messager.show({
+		       		title: '提示信息',
+		       		msg: data.message,
+		       		timeout: 5000,
+		       		showType: 'slide'
+		       	});
+			}, 'json');
+		}
+	});
+}
+
+var changedRoles = {};
+//角色列表载入
+function roleListInit(userSid) {
+	
+	userSid = (userSid == undefined) ? null : userSid;
+	$('#roleList').datagrid({
+//		title: '账户管理',
+		url : contextPath + '/setRolesList.do',
+		loadMsg : '数据加载中......',
+		fit: true,
+    	striped: false,
+		remoteSort: false,
+		toolbar: '',
+		pagination: true,
+		pageNumber: 1,
+		rownumbers: true,
+		fitColumns: true,
+		singleSelect:true,
+		queryParams: {userSid: userSid},
+		onLoadSuccess: function(data) {
+			
+			$(".datagrid-cell .easyui-switchbutton").switchbutton({
+				onChange: function(r) {
+					var sid = $(this).attr('id').split('@')[0];
+					var name = $(this).attr('id').split('@')[1];
+					changedRoles[sid] = [r, name];
+					$('#saveRolesBtn').linkbutton('enable');
+				}
+			});
+			
+			$(this).datagrid('clearSelections');
+			$(this).datagrid('resize');
+		},
+		columns: [ [  {
+			field: 'roleName',
+			title: '角色名称',
+			width: 120,
+			align: 'center'
+			
+		}, {
+			field: 'userSid',
+			title: '操作',
+			width: 100,
+			align: 'center',
+			fixed: true,
+			formatter: function(val, row, idx) {
+				var checked = '';
+				if (changedRoles[row.sid] == undefined) {
+					checked = val?'checked':'';
+				} else {
+					checked = changedRoles[row.sid][0]?'checked':'';
+				}
+				
+				var html = '<input id="'+ row.sid +'@' + row.roleName + '" class="easyui-switchbutton" onText="已分配" offText="未分配" style="width: 70px;" ' + checked + '/>';
+				return html;
+			
+			}
+		}
+	   ] ]
+
+	});
+
+}
+//点击分配角色按钮
+function selectRoles(userSid) {
+	changedRoles = {};
+	
+	$("#roleWindow").dialog({closable: true});
+	$('#cancelSaveRolesBtn').show();
+	$('#saveRolesBtn').linkbutton('disable');
+	$('#saveRolesBtn').linkbutton({
+		onClick: function() {
+			var rs = JSON.stringify(changedRoles);
+			$('#roles').val(rs);
+			$('#roleWindow').dialog('close');
+		}
+	});
+	roleListInit(userSid);
+	$("#roleWindow").dialog('center');
+	$("#roleWindow").dialog('open');
+}
+
+//点击添加所属角色按钮
+function addRoles() {
+	$("#roleWindow").dialog({closable: false});
+	$('#cancelSaveRolesBtn').hide();
+	$('#saveRolesBtn').linkbutton('enable');
+	$('#saveRolesBtn').linkbutton({
+		onClick: function() {
+			var rs = JSON.stringify(changedRoles);
+			$('#roles').val(rs);
+			var names = '';
+			$.each(changedRoles, function(i, e) {
+				if (e[0]) {
+					names += e[1] + ',';
+				}
+			});
+			names = names.substring(0, names.length-1);
+			$('#roleNames').html(names);
+			$('#roleWindow').dialog('close');
+		}
+	});
+	roleListInit(null);
+	$("#roleWindow").dialog('center');
+	$("#roleWindow").dialog('open');
+}
+
+
+//点击编辑账户按钮
+function editUser(idx) {
+	var row = $('#list').datagrid('getRows')[idx];
+	$('#useridEdit').textbox('setValue', row.userid);
+	$('#roleNames').html(row.roles);
+	
+	$("#editUserWindow").dialog('center');
+	$("#editUserWindow").dialog('open');
+}
+
+//点击新增账户按钮
+function addUser() {
+	$('#useridEdit').textbox('setValue', '');
+	$('#passwordEdit').textbox('setValue', '');
+	$('#passwordConfirmEdit').textbox('setValue', '');
+	$('#roles').val('');
+	$('#roleNames').html('');
+	changedRoles = {};
+	$("#editUserWindow").dialog('center');
+	$("#editUserWindow").dialog('open');
+}
+
+//提交保存账户信息
+function saveUser(add) {
+	var url = contextPath + '/addUser.do'; 
+	if (!add) {
+		
+	}
+	
+	 $('#editUserForm').form('submit',{
+    	url: url,
+        onSubmit: function(){
+            return $(this).form('enableValidation').form('validate');
+        },
+        success: function(data) {
+        	data = $.parseJSON(data);
+        	$.messager.show({
+        		title: '提示信息',
+        		msg: data.message,
+        		timeout: 5000,
+        		showType: 'slide'
+        	});
+        	
+        	if (data.success) {
+	        	changedRoles = {};
+        		$('#list').datagrid('reload');
+	        	$("#editUserWindow").dialog("close");
+        	}
+        }
+    });
+	
+}
+
+//取消保存账户信息
+function cancelSaveUser() {
+	changedRoles = {};
+	$("#editUserWindow").dialog('close');
 }
 
 function doSearch(value) {
-	$('#list').datagrid('load', {
+	var queryParams = {
 		username: value
-	});
-}
-
-function addUser() {
-	$("#editJd").dialog({
-		iconCls : "icon-edit",
-		width : 600,
-		modal : true,
-		title : "专家信息编辑",
-		maximizable : false,
-		minimizable : false,
-		resizable : false,
-		buttons : [ {
-			text : "保存",
-			iconCls : "icon-ok",
-			handler : function() {
-				$("#editJdxx_form").trigger('submit');
-			}
-
-		}, {
-			text : "取消",
-			iconCls : "icon-cancel",
-			handler : function() {
-				$("#editJd").dialog("close");
-			}
-		} ]
-	});
-	
-	$("#editJd").dialog('center');
-	$("#editJd").dialog('open');
+	};
+	$('#list').datagrid('load', queryParams);
 }
 
 </script>
+</head>
 
+<body>
 <div class="easyui-layout" fit="true">
 	<div data-options="region:'center', split:false, border:false">
 		<div id="divToolbar">
@@ -139,7 +295,7 @@ function addUser() {
 						<a class="datagrid-btn-separator"></a>
 					</td>
 					<td>
-						<input class="easyui-searchbox" id="xm" data-options="prompt:'按用户名搜索', searcher:doSearch" style="width:150px" />
+						<input class="easyui-searchbox" id="xm" data-options="prompt:'按账户名搜索', searcher:doSearch" style="width:150px" />
 					</td>
 				</tr>
 			</table>
@@ -149,146 +305,68 @@ function addUser() {
 </div>
 
 
+<!-- 角色分配窗口 -->
+<div id="roleWindow" class="easyui-dialog"  data-options="closed:true, iconCls:'icon-role', width:600, height: 400, modal:true, title:'分配角色', maximizable:false, minimizable:false, resizable:true, buttons:'#btns'">
+	<table id="roleList" class="easyui-datagrid" data-options=""></table>
+</div>
+<div id="btns">
+	<a id="saveRolesBtn" class="easyui-linkbutton" iconCls="icon-ok" onclick="confirmRoles()">确定</a>
+	<a id="cancelSaveRolesBtn" class="easyui-linkbutton" iconCls="icon-cancel" onclick="$('#roleWindow').dialog('close')">取消</a>
+</div>
 
-
-
-<div id="editJd" class="easyui-dialog" data-options="closed:true">
-		<form method="post" id="editJdxx_form">
-			<input name="pszjxx.sid" id="sidEdit" type="hidden" style="display: none;"/>
-			<input name="pszjxx.userSid" id="userSidEdit" type="hidden" style="display: none;"/>
-			<table class="formTableStyle">
-				<tr>
-					<th>
-						<font color="red">*</font>姓名：
-					</th>
-					<td>
-						<input name="pszjxx.xm"  id="xmEdit" class="easyui-textbox" required="true" style="width: 90%;" validType="maxLength[5]" missingMessage="名称不能为空"/>	
-					</td>
-					<th>
-						性别：
-					</th>
-					<td>
-						<select name="pszjxx.xb"  id="xbEdit" class="easyui-textbox" style="width: 90%;"></select>	
-					</td>
-				</tr>
-				<tr>
-					<th>
-						出生年月：
-					</th>
-					<td>
-						 <input name="pszjxx.csnyStr" id="csnyEdit" style="width: 90%" class="easyui-datebox" data-options="editable:false" />			
-					</td>
-					<th>
-						工作单位：
-					</th>
-					<td>
-						<input name="pszjxx.gzdw"  id="gzdwEdit" class="easyui-textbox" style="width: 90%;" validType="maxLength[15]"/>	
-					</td>
-				</tr>
-				<tr>
-					<th>
-						行政职务：
-					</th>
-					<td>
-						<input name="pszjxx.xzzw"  id="xzzwEdit" class="easyui-textbox" style="width: 90%;" validType="maxLength[15]" missingMessage="名称不能为空"/>	
-					</td>
-					<th>
-						手机号码：
-					</th>
-					<td>
-						<input name="pszjxx.sjhm"  id="sjhmEdit" class="easyui-textbox" style="width: 90%;" validType="maxLength[15]" />	
-					</td>
-					
-				</tr>
-				<tr>
-					<th>
-						取得时间：
-					</th>
-					<td>
-						<input name="pszjxx.qdsjStr" id="qdsjEdit" style="width: 90%" class="easyui-datebox" data-options="editable:false"/>	
-					</td>
-					<th>
-						评审专业：
-					</th>
-					<td>
-						<select name="pszjxx.zpzy"  id="zpzyEdit" class="easyui-combobox" data-options="editable:false" style="width: 90%;"></select>	
-					</td>
-				</tr>
-				<tr>
-					<th>
-						职称资格：
-					</th>
-					<td>
-						<select name="pszjxx.zczg"  id="zczgEdit" class="easyui-textbox" style="width: 90%;"></select>	
-					</td>
-					<th>
-						聘任时间：
-					</th>
-					<td>
-						<input name="pszjxx.prsjStr" id="prsjEdit" style=" width: 90%" class="easyui-datebox" data-options="editable:false" />
-					</td>
-				</tr>
-				<tr>
-					<th>
-						参加工作时间：
-					</th>
-					<td>
-						<input name="pszjxx.cjgzsjStr"id="cjgzsjEdit"  style="width: 90%" class="easyui-textbox"  />	
-					</td>
-					<th>
-						毕业时间：
-					</th>
-					<td>
-						<input name="pszjxx.bysjStr" id="bysjEdit" style=" width: 90%" class="easyui-textbox"  />
-					</td>
-				</tr>
-				<tr>
-					<th>
-						现从事专业：
-					</th>
-					<td>
-						<select name="pszjxx.xcszy"  id="xcszyEdit" class="easyui-textbox" style="width: 90%;"></select>	
-					</td>
-					<th>
-						现从事专业年限：
-					</th>
-					<td>
-						<input name="pszjxx.xcszynx"  id="xcszynxEdit" class="easyui-numberbox" style="width: 90%;" />	
-					</td>
-					
-				</tr>
-				<tr>
-					<th>
-						毕业院校：
-					</th>
-					<td>
-						<input name="pszjxx.byyx"  id="byyxEdit" class="easyui-textbox" style="width: 90%;" validType="maxLength[15]" />	
-					</td>
-					
-					<th>
-						学历：
-					</th>
-					<td>
-						<select name="pszjxx.xl"  id="xlEdit" class="easyui-textbox" style="width: 90%;"></select>	
-					</td>
-					
-				</tr>
-				<tr>
-					
-					<th>
-						学位：
-					</th>
-					<td>
-						<select name="pszjxx.xw"  id="xwEdit" class="easyui-textbox" style="width: 90%;"></select>	
-					</td>
-					
-					<th>
-						状态：
-					</th>
-					<td>
-						<select name="pszjxx.zjzt"  id="zjztEdit" class="easyui-textbox" style="width: 90%;"></select>	
-					</td>
-				</tr>
-			</table>
-		</form>
-	</div>
+<!-- 账户编辑窗口 -->
+<div id="editUserWindow" class="easyui-dialog" data-options="closed:true, iconCls:'icon-user', width:350, modal:true, title:'新增账户', maximizable:false, minimizable:false, resizable:false, buttons:'#userBtns'">
+	<form method="post" id="editUserForm">
+		<input name="userSid" id="userSidEdit" type="hidden" style="display: none;"/>
+		<table class="formTableStyle">
+			<tr>
+				<th style="width: 40%;">
+					登录名
+				</th>
+				<td style="">
+					<input name="userid"  id="useridEdit" class="easyui-textbox" required="true" style="width: 90%;" validType="maxLength[5]" missingMessage="名称不能为空"/>	
+				</td>
+			</tr>
+			<tr>
+				<th>
+					密码
+				</th>
+				<td>
+					<input type="password" name="password" id="passwordEdit" class="easyui-textbox" required="true" style="width: 90%;">	
+				</td>
+			</tr>
+			<tr>
+				<th>
+					确认密码
+				</th>
+				<td>
+					<input type="password" id="passwordConfirmEdit" class="easyui-textbox" required="true" style="width: 90%;">	
+				</td>
+			</tr>
+			<!-- 
+			<tr>
+				<th>
+					状态
+				</th>
+				<td>
+					<input class="easyui-switchbutton" data-options="onText:'启用', offText:'禁用'" checked>
+				</td>
+			</tr>
+			 -->
+			<tr>
+				<th>
+					<a class="easyui-linkbutton" iconCls="icon-role" onclick="addRoles()">所属角色</a>
+				</th>
+				<td>
+					<input type="hidden" style="display: none;" name="roles" id="roles"/>
+					<span id="roleNames"></span>
+				</td>
+			</tr>
+		</table>
+	</form>
+</div>
+<div id="userBtns">
+	<a id="saveUserBtn" class="easyui-linkbutton" iconCls="icon-ok" onclick="saveUser()">确定</a>
+	<a class="easyui-linkbutton" iconCls="icon-cancel" onclick="cancelSaveUser()">取消</a>
+</div>
+</body>

@@ -7,6 +7,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import oracle.net.aso.e;
+
 import org.apache.ibatis.session.SqlSession;
 import org.springframework.stereotype.Service;
 
@@ -82,35 +84,21 @@ public class MenuServiceImpl extends CommonDaoServiceImpl implements MenuService
 	}
 
 	@Override
-	public void modifyAuths(String menuSid, String auths) throws Exception {
+	public void modifyAuths(String auths) throws Exception {
 		
-		if (menuSid == null || menuSid.equals("")) throw new Exception("菜单sid传入为空");
 
 		//删除关系表
-		Map<String, String> authMap = new ObjectMapper().readValue(auths, Map.class);
-		List<Integer> menuSidList = new ObjectMapper().readValue(menuSid, List.class);
-		if (authMap == null) return;
-		Iterator<String> ml = authMap.keySet().iterator();
-		List<String> roles = new ArrayList<String>();
-		List<RoleModule> rmList = new ArrayList<RoleModule>();
-		while (ml.hasNext()) {
-			String key = ml.next();
-			roles.add(key);
-			for (Integer mSid : menuSidList) {
-				RoleModule rm = new RoleModule(new BigDecimal(key), new BigDecimal(mSid), Integer.valueOf(authMap.get(key)));
-				rmList.add(rm);
-			}
+		List<List<String>> authArry = new ObjectMapper().readValue(auths, List.class);
+		if (authArry == null || authArry.size() == 0) return;
+		
+		List<RoleModule> rms = new ArrayList<RoleModule>();
+		for (List<String> list : authArry) {
+			RoleModule rm = new RoleModule(new BigDecimal(list.get(0)), new BigDecimal(list.get(1)), new Integer(list.get(2)));
+			rms.add(rm);
 		}
 		
-		QueryEntity query = new QueryEntity();
-		query.setModuleSidList(menuSidList);
-		query.setRoleSidList(roles);
-		this.getCommonDao().delete("role.deleteRoleModule", query);
-
-		//插入关系表
-		for (RoleModule roleModule : rmList) {
-			this.getCommonDao().insert("role.insertRoleModule", roleModule);
-		}
+		this.getCommonDao().deleteBatch("role.deleteRoleModule", rms);
+		this.getCommonDao().insertBatch("role.insertRoleModule", rms);
 	}
 
 	@Override

@@ -2,8 +2,6 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="menu" >
 
-
-  
   <select id="menuList" resultType="com.bky.model.SysMenu" parameterType="com.bky.model.QueryEntity">
   	select a.* from T_SYS_MODULE a
   	<if test="roleSid != null">

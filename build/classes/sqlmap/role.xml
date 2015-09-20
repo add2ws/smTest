@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="role" >
 
- <select id="roleListCount" resultType="java.math.BigDecimal" parameterType="com.bky.model.QueryEntity">
+ <select id="roleListCount" parameterType="com.bky.model.QueryEntity" resultType="java.math.BigDecimal">
   	select count(1) from T_SYS_ROLE
   	<if test="roleName != null">
   		<where>
@@ -10,7 +10,7 @@
   		</where>
   	</if>
   </select>
-  <select id="roleList" resultType="com.bky.model.Role" parameterType="com.bky.model.QueryEntity">
+  <select id="roleList" parameterType="com.bky.model.QueryEntity" resultType="com.bky.model.Role">
   	select * from T_SYS_ROLE
  	<if test="roleName != null">
   		<where>
@@ -21,36 +21,22 @@
   	
   </select>
   
-  
-   <select id="menuToRoleListCount" resultType="java.math.BigDecimal" parameterType="com.bky.model.QueryEntity">
+   <select id="menuToRoleListCount" parameterType="com.bky.model.QueryEntity" resultType="java.math.BigDecimal">
   		select count(1)
   		from t_sys_role a
-  		left join T_SYS_ROLE_MODULE b on a.sid = b.role_sid 
-  		<if test="moduleSid != null and moduleSid != ''">
-  		 	and b.module_sid=#{moduleSid,jdbcType=NUMERIC}
-  		</if>
-		<if test="moduleSid == null or moduleSid == ''">
-  		 	and 1=0
-  		</if>
+  		left join T_SYS_ROLE_MODULE b on a.sid = b.role_sid and b.module_sid=#{moduleSid,jdbcType=NUMERIC}
 	  	<if test="roleName != null and roleName != ''">
   			where a.role_name like '%'||#{roleName,jdbcType=VARCHAR}||'%'
 	  	</if>
   </select>
-  <select id="menuToRoleList" resultType="com.bky.model.RoleModule" parameterType="com.bky.model.QueryEntity">
+  <select id="menuToRoleList" parameterType="com.bky.model.QueryEntity" resultType="com.bky.model.RoleModule">
 	  	select 
 			a.sid as roleSid,
 			a.role_name,
 			nvl(b.right, 0) as right
 			
 	  		from t_sys_role a
-	  		left join T_SYS_ROLE_MODULE b on a.sid = b.role_sid
-	  		<if test="moduleSid != null and moduleSid != ''">
-	  		 	and b.module_sid=#{moduleSid,jdbcType=NUMERIC}
-	  		</if>
-	  		<if test="moduleSid == null or moduleSid == ''">
-	  		 	and 1=0
-	  		</if>
-	
+	  		left join T_SYS_ROLE_MODULE b on a.sid = b.role_sid and b.module_sid=#{moduleSid,jdbcType=NUMERIC}
 		  	<if test="roleName != null and roleName != ''">
 	  			where a.role_name like '%'||#{roleName,jdbcType=VARCHAR}||'%'
 		  	</if>
@@ -62,22 +48,17 @@
   	values(SEQ_SYS_ROLE_MODULE.nextval, #{roleSid,jdbcType=NUMERIC}, #{moduleSid,jdbcType=NUMERIC}, #{right,jdbcType=NUMERIC})
   </insert>
   
-  <delete id="deleteRoleModule" parameterType="com.bky.model.QueryEntity">
-  	delete from T_SYS_ROLE_MODULE where module_sid in (
-  		<trim suffix="" suffixOverrides=",">
-		  	<foreach collection="moduleSidList" item="sid">
-		  		#{sid,jdbcType=NUMERIC},
-		  	</foreach>
-	  	</trim>
-  	
-  	) and role_sid in (
-  		<trim suffix="" suffixOverrides=",">
-		  	<foreach collection="roleSidList" item="sid">
-		  		#{sid,jdbcType=NUMERIC},
-		  	</foreach>
-	  	</trim>
-  	)
-  	
+  <delete id="deleteRoleModule" parameterType="com.bky.model.RoleModule">
+  	delete from T_SYS_ROLE_MODULE where module_sid=#{moduleSid,jdbcType=NUMERIC} and role_sid=#{roleSid,jdbcType=NUMERIC}
   </delete>
+  
+  
+  <select id="roleListCountByUserSid" parameterType="java.lang.String" resultType="java.math.BigDecimal">
+  	select count(1) from t_sys_role a left join T_SYS_USER_ROLE b on a.sid=b.role_sid and b.USER_SID=#{userSid,jdbcType=NUMERIC}
+  </select>
+  <select id="roleListByUserSid" parameterType="java.lang.String" resultType="com.bky.model.Role">
+  	select a.*, b.user_sid from t_sys_role a left join T_SYS_USER_ROLE b on a.sid=b.role_sid and b.USER_SID=#{userSid,jdbcType=NUMERIC}
+  	order by a.sort_id
+  </select>
   
 </mapper>

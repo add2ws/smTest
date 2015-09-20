@@ -1,21 +1,18 @@
-<%@ page language="java" import="java.util.*" pageEncoding="UTF-8"%>
+<%@ page language="java" contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
 <%
 String path = request.getContextPath();
 String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+path+"/";
 %>	 
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<head>
+<title>信息管理系统</title>
+<jsp:include page="/page/inc_header.jsp"></jsp:include> 
 <style>
-.switchbutton-on {
-  background: #FF6666;
-  color: #fff;
-}
-
 .modified {
 	border: solid 2px red;
 }
 </style>
 <script type="text/javascript">
-var contextPath = "<%=path%>";
 
 $(function() {
 	loadMenu();
@@ -45,7 +42,7 @@ $(function() {
 		
 	});
 	
-	$('#menuIconEdit').combobox({
+	$('#iconClassEdit').combobox({
 		editable: false,
 		textField: 'name',
 		valueField: 'code',
@@ -69,7 +66,6 @@ function loadMenu() {
 		url: contextPath + '/menuTree.do',
 		lines: true,
 		animate: true,
-		checkbox: true,
 		onLoadSuccess: function(node, data) {
 			var id = $('#menuSid').val();
 			if (!id) {
@@ -87,12 +83,6 @@ function loadMenu() {
 			}
 		},
 		onCheck: function(node, checked) {
-			var lst = $(this).tree('getChecked');
-			if (lst.length > 1) {
-				$('#roleAllBtn').linkbutton('enable');
-			} else {
-				$('#roleAllBtn').linkbutton('disable');
-			}
 
 		},
 		onSelect: function(node) {
@@ -176,7 +166,7 @@ function deleteMenu() {
 			var url = contextPath + '/deleteMenu.do';
 			$.post(url, {sid: menuSid}, function(data) {
 				if (data.success) {
-					$('#sysMenuTree').tree('reload');
+					$('#sysMenuTree').tree({url: contextPath + '/menuTree.do'});
 				}
 				
 				$.messager.show({
@@ -191,25 +181,36 @@ function deleteMenu() {
 	});	
 }
 
-function deleteAllMenu() {
-	var list = $('#sysMenuTree').tree('getChecked');
-	$.messager.confirm('提示信息', '您确认删除选中的' + list.length + '个菜单吗？这些菜单下的全部子菜单也会随之删除', function(r) {
-		if (r) {
-			
-		}
-	});	
-}
-
 function addChildMenu() {
 	editMenu(true);
 }
 function editMenu(add) {
+	var node = $('#sysMenuTree').tree('getSelected');
+	$('#parentNameEdit').html( $('#sysMenuTree').tree('getParent', node.target).name);
 	
 	if (add) {
-		obj2Form('#editForm', null);	
+		$('#nameEdit').textbox('setValue', '');
+		$('#addressEdit').textbox('setValue', '');
+		$('#memoEdit').textbox('setValue', '');
+		$('#isValidEdit').switchbutton('check');
+		$('#visibleEdit').switchbutton('check');
+		$('#iconClassEdit').combobox('select', 'icon-blank');
+
 	} else {
-		var node = $('#sysMenuTree').tree('getSelected');
-		obj2Form('#editForm', node);
+		$('#nameEdit').textbox('setValue', node.name);
+		$('#addressEdit').textbox('setValue', node.address);
+		$('#memoEdit').textbox('setValue', node.memo);
+		if (node.isValid == '1') {
+			$('#isValidEdit').switchbutton('check');
+		} else {
+			$('#isValidEdit').switchbutton('uncheck');
+		}
+		if (node.visible == '1') {
+			$('#visibleEdit').switchbutton('check');
+		} else {
+			$('#visibleEdit').switchbutton('uncheck');
+		}
+		$('#iconClassEdit').combobox('select', node.iconCls);
 	}
 	
 	$("#editMenu").dialog({
@@ -255,28 +256,22 @@ function editMenu(add) {
 }
 
 var modifyAuths = {};
-function saveAuths(batch) {
-	var menuSid = [];
-	if (batch) {
-		$.each($('#sysMenuTree').tree('getChecked'), function(i, e) {
-			menuSid.push(e.sid);
-		});
-	} else {
-		menuSid.push($('#sysMenuTree').tree('getSelected').sid);
+function saveAuths() {
+	var menuSid = $('#sysMenuTree').tree('getSelected').sid + '';
+	
+	//构造auths参数
+	var auths = [];
+	for (role in modifyAuths) {
+		var roleMenu = [role, menuSid, modifyAuths[role]];
+		auths.push(roleMenu);
 	}
-	menuSid = JSON.stringify(menuSid);
+	auths = JSON.stringify(auths);
 
 	var url = contextPath + '/modifyAuths.do';
-	var auths = JSON.stringify(modifyAuths);
-	$.post(url, {menuSid: menuSid, auths: auths}, function(data) {
+	$.post(url, {auths: auths}, function(data) {
 		if (data.success) {
 			modifyAuths = {};
 			$('#roleWindow').dialog('close');
-			
-			if (batch) {
-				$('#sysMenuTree').tree('reload');
-			}
-			
 		}
 		$.messager.show({
        		title: '提示信息',
@@ -285,10 +280,10 @@ function saveAuths(batch) {
        		showType: 'slide'
        	});
        	
-	
 	}, 'json');
 }
 
+//取消保存
 function cancelSaveAuths() {
 	if ($.isEmptyObject(modifyAuths)) {
 		$("#roleWindow").dialog("close");
@@ -303,12 +298,9 @@ function cancelSaveAuths() {
 }
 
 //角色列表载入
-function roleMenuListInit(batch) {
-	var menuSid = null;
-	if (!batch) {
-		menuSid = $('#sysMenuTree').tree('getSelected').sid;
-	}
-	
+function roleMenuListInit() {
+	var menuSid = $('#sysMenuTree').tree('getSelected').sid;
+
 	$('#roleList').datagrid({
 		url : contextPath + '/menu2RoleList.do',
 		loadMsg : '数据加载中......',
@@ -317,6 +309,7 @@ function roleMenuListInit(batch) {
 		remoteSort: false,
 		toolbar: '#divToolbar',
 		pagination: true,
+		pageNumber: 1,
 		rownumbers: false,
 		fitColumns: true,
 		singleSelect: true,
@@ -345,7 +338,7 @@ function roleMenuListInit(batch) {
 
 				},
 				
-				//初始化中修改过权限的
+				//初始化修改过权限的
 				onLoadSuccess: function() {
 					var roleSid = $(this).attr('id');
 					var right = modifyAuths[roleSid];
@@ -395,21 +388,25 @@ function roleMenuListInit(batch) {
 	});
 }
 
-function authority(batch) {
+//点击分配权限按钮
+function authority() {
 	modifyAuths = {};
 	$('#saveAuthBtn').linkbutton('disable');
+	$('#roleWindow').dialog('center');
 	$('#roleWindow').dialog('open');
 
 	$('#saveAuthBtn').linkbutton({
 		onClick: function() {
-			saveAuths(batch);
+			saveAuths();
 		}
 		
 	});
-	roleMenuListInit(batch);
+	roleMenuListInit();
 }
 
 </script>
+</head>
+<body>
 <div class="easyui-layout" fit="true">
 	<div id="lm" data-options="region:'west', split:true, border:true, collapsible:false" style="width: 350px; padding: 8px; ">
 		<!-- 
@@ -457,7 +454,6 @@ function authority(batch) {
                   	<a id="editBtn" data-options="disabled:true" href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-edit" onclick="editMenu()" plain="true">编辑</a>
                   	<a id="deleteBtn" data-options="disabled:true" href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-cross" onclick="deleteMenu()" plain="true">删除</a>
                   	<a id="roleBtn" data-options="disabled:true" href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-role" onclick="authority()" plain="true">分配角色权限</a>
-                  	<a id="roleAllBtn" data-options="disabled:true" href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-role" onclick="authority(true)" plain="true">批量分配角色权限</a>
                   	<a id="childBtn" data-options="disabled:true" href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-menu" onclick="addChildMenu()" plain="true">增加子菜单</a>
                   </td>
               </tr>
@@ -500,29 +496,19 @@ function authority(batch) {
                 <tr>
                     <th>是否有效：</th>
                     <td>
-                    	<label>
-							<input name="isValid" id="isValid1Edit" type="radio" value="1"/>是&nbsp;
-						</label>
-						<label> 
-							<input name="isValid" id="isValid0Edit" type="radio" value="0"/>否&nbsp;
-						</label>
+                    	<input class="easyui-switchbutton" name="isValid" id="isValidEdit" onText="是" offText="否" style="height: 20px; width: 45px;">
 					</td>
                 </tr>
                 <tr>
                     <th>是否可见：</th>
                     <td>
-						<label>
-							<input name="visible" id="visible1Edit"  type="radio" value="1" />是&nbsp;
-						</label>
-						<label>
-							<input name="visible" id="visible0Edit" type="radio" value="0"/>否&nbsp;
-						</label>
+						<input class="easyui-switchbutton" name="visible" id="visibleEdit" onText="是" offText="否" style="height: 20px; width: 45px;" >
 					</td>
                 </tr>
                 <tr>
                     <th>菜单图标：</th>
                     <td>
-                    	<select name="iconClass" id="menuIconEdit" class="easyui-combobox" style="width: 142px;" ></select>
+                    	<select name="iconClass" id="iconClassEdit" class="easyui-combobox" style="width: 142px;" ></select>
 					</td>
                 </tr>
                 <tr>
@@ -544,3 +530,4 @@ function authority(batch) {
 	</div>
 	
 </div>
+</body>

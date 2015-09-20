@@ -53,7 +53,7 @@ public class MenuController {
 	
 	@RequestMapping("saveMenu")
 	@ResponseBody
-	public Object saveMenu(String sid, String name, String address, String visible, String isValid, String pSid, String memo, String sortId, String menuType, String iconClass) {
+	public Object saveMenu(@RequestParam("sid") String sid, @RequestParam("name") String name, @RequestParam("address")String address, @RequestParam("visible") String visible, @RequestParam("isValid") String isValid, @RequestParam("pSid") String pSid, @RequestParam("memo") String memo, @RequestParam("sortId") String sortId, @RequestParam("menuType") String menuType, @RequestParam("iconClass") String iconClass) {
 		try {
 			menuService.saveOrUpdateMenu(sid, name, address, visible, isValid, pSid, memo, sortId, menuType, iconClass);
 			responseEntity.setSuccess(true);
@@ -68,7 +68,7 @@ public class MenuController {
 	
 	@RequestMapping("deleteMenu")
 	@ResponseBody
-	public Object deleteMenu(@RequestParam(defaultValue="") String sid) {
+	public Object deleteMenu(@RequestParam("sid") String sid) {
 		try {
 			menuService.deleteMenu(sid);
 			responseEntity.setSuccess(true);
@@ -100,11 +100,11 @@ public class MenuController {
 	
 	@RequestMapping("modifyAuths")
 	@ResponseBody
-	public Object modifyAuths(String menuSid, String auths) {
+	public Object modifyAuths(@RequestParam("auths") String auths) {
 		
 		try {
 			
-			menuService.modifyAuths(menuSid, auths);
+			menuService.modifyAuths(auths);
 			responseEntity.setSuccess(true);
 			responseEntity.setMessage("成功");
 		} catch (Exception e) {

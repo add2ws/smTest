@@ -4,7 +4,7 @@
 	border:1px solid #d4d4d4;   
     border-collapse:collapse;  
 	table-layout: fixed;
-	width:100%; 
+	width:100%;
 	margin: 0px;
 }
 .formTableStyle tr{
@@ -61,30 +61,27 @@
 	vertical-align:middle;
 }   
 
- 
-.searchTableStyle{
-	border:1px solid #BAC8D0;   
-    border-collapse:collapse;  
-	table-layout: fixed;
-	width:100%; 
-	margin: 0px;
+body {
+	font-family: Arial;
 }
-.searchTableStyle tr{
-	margin: 0px;
-	padding:1px;
+
+a:focus,input {
+	outline:none;
 }
-.searchTableStyle th{
-	border:1px solid #BAC8D0; 
-	background-color: #f5faff;
-	text-align: right;
-	vertical-align:middle;
-	margin: 0px;
-	padding: 1px;
+
+.panel-title {
+  color: #555;
+  text-indent: 5px;
 }
-.searchTableStyle tr td{ 
-	border:1px solid #BAC8D0;   
-    border-collapse:collapse; 
-	text-align: left;
-	margin: 0px;
-	padding: 1px;
+.combobox-item {
+	cursor: pointer;	
+}
+
+.accordion-body {
+	border: 0;	
+}
+
+.switchbutton-on {
+  background: #FF6666;
+  color: #fff;
 }

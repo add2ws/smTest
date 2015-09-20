@@ -60,7 +60,11 @@ public class MD5 {
 
 		return hexValue.toString();
 	}
-
+	
+	public String toString() {
+		return this.compute();
+	}
+	
 	public static void main(String[] args) {
 		MD5 md5 = new MD5("abc");
 		String postString = md5.compute();

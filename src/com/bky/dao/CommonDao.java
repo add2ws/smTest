@@ -240,9 +240,9 @@ public class CommonDao
 		
 		int startRow=this.getCurrentStartRow(page, pageRows);
 
-		 RowBounds rb = new RowBounds(startRow,pageRows);
+		RowBounds rb = new RowBounds(startRow,pageRows);
 			
-			List<?> pagelist = this.getSqlSessionTemplate().selectList(searchMethod, obj, rb);
+		List<?> pagelist = this.getSqlSessionTemplate().selectList(searchMethod, obj, rb);
 		
 		//List<?> pagelist = this.getSqlMapClientTemplate().queryForList(searchMethod, obj, startRow,
 		//		pageRows);

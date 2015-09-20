@@ -1,26 +1,5 @@
 @CHARSET "UTF-8";
 
-body {
-	font-family: Arial;
-}
-
-a:focus,input {
-	outline:none;
-}
-
-.panel-title {
-  color: #555;
-  text-indent: 5px;
-}
-.combobox-item {
-	cursor: pointer;	
-}
-
-.accordion-body {
-	border: 0;	
-}
-
-
 .navMenuList {
 	position: absolute;
 	left: 120px;

@@ -13,6 +13,8 @@ public class Role {
 	private String isvalid;
 	private BigDecimal sortId;
 	private String orgSid;
+	
+	private String userSid;
 
 
 	// Constructors
@@ -71,5 +73,14 @@ public class Role {
 	public void setOrgSid(String orgSid) {
 		this.orgSid = orgSid;
 	}
+
+	public String getUserSid() {
+		return userSid;
+	}
+
+	public void setUserSid(String userSid) {
+		this.userSid = userSid;
+	}
+
 
 }

@@ -28,8 +28,13 @@ public class EasyuiUtil {
 		List<SysMenu> rootLst = new ArrayList<SysMenu>();
 		SysMenu root = new SysMenu();
 		root.setId(0);
+		root.setMenuType("0");
+		root.setName("所有菜单");
 		root.setText("所有菜单");
-//		root.setIconCls("");
+		root.setIsValid("1");
+		root.setVisible("1");
+		root.setAddress("-");
+		root.setMemo("系统根菜单");
 		root.setChildren(tree);
 		rootLst.add(root);
 		return rootLst;

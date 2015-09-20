@@ -1,4 +1,4 @@
-<%@ page language="java" import="java.util.*" pageEncoding="UTF-8"%>
+<%@ page language="java" contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
 <%
 String path = request.getContextPath();
 String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+path+"/";
@@ -7,26 +7,14 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
-<base href="<%=basePath%>">
 <title>信息管理系统</title> 
-<meta http-equiv="pragma" content="no-cache">
-<meta http-equiv="cache-control" content="no-cache">
-<meta http-equiv="expires" content="0">
-<meta http-equiv="keywords" content="信息管理系统">
-<meta http-equiv="description" content="This is my page"> 
-
-<link rel="stylesheet" type="text/css" href="<%=path%>/js/jquery-easyui-1.4.3/themes/bootstrap/easyui.css?a=<%=Math.random() %>" >
-<link rel="stylesheet" type="text/css" href="<%=path%>/js/jquery-easyui-1.4.3/themes/icon.css" >
+<jsp:include page="/page/inc_header.jsp"></jsp:include>
 <link rel="stylesheet" type="text/css" href="<%=path%>/css/homePage.css?a=<%=Math.random() %>" >
-<link rel="stylesheet" type="text/css" href="<%=path%>/css/common.css" >
-<script type="text/javascript" src="<%=path%>/js/jquery-easyui-1.4.3/jquery.min.js"></script>
-<script type="text/javascript" src="<%=path%>/js/jquery-easyui-1.4.3/jquery.easyui.min.js"></script>
-<script type="text/javascript" src="<%=path%>/js/jquery-easyui-1.4.3/locale/easyui-lang-zh_CN.js" ></script>
-<script type="text/javascript" src="<%=path%>/js/common/common.js" ></script>
 <script type="text/javascript">
+
 $(document).ready(function() {
 
-	var url = '<%=path%>/loginMenuTree.do?rid=1';
+	var url = contextPath + '/loginMenuTree.do?rid=1';
 	$.post(url, {}, function(data) {
 		var root = data[0];
 		
@@ -34,12 +22,12 @@ $(document).ready(function() {
 			return;
 		}
 		
-		//按sort_id菜单排序
+		//菜单排序
 		root.children.sort(function(a, b) {
 			return a.sortId - b.sortId;
 		});
 		
-		//加载顶部导航菜单
+		//加载顶部导航菜单（一级菜单组）
 		$('#navMenu').empty();
 		var curOpen = null;//当前打开的菜单
 		var isFirstMenu = true;//默认打开第一个菜单
@@ -71,7 +59,6 @@ $(document).ready(function() {
 //展开左侧菜单
 function openLeftMenu(navMenuNode) {
 	$('#leftLayout').empty();
-	$('#page').panel('clear');
 	/*
 	$('#leftLayout').panel({
 		title: navMenuNode.name,
@@ -79,23 +66,17 @@ function openLeftMenu(navMenuNode) {
 	});
 	*/
 	if (!navMenuNode.children || navMenuNode.children.length == 0) return;
-	//2级菜单按sort_id排序
+	//二级菜单排序
 	navMenuNode.children.sort(function(a, b) {
 		return a.sortId - b.sortId;
 	});
-	
-	
-	
-	
-	
-	
 	
 	//创建菜单组容器
 	var leftMenu = $('<div class="easyui-accordion" style="width: 100%;" ></div>').appendTo($('#leftLayout'));
 	leftMenu.accordion({border: false});
 	//创建子菜单容器
 	var menuLv2 = $('<ul class="menuAccordion"></ul>').appendTo($('#leftLayout'));
-	//遍历2级菜单
+	//遍历二级菜单
 	$.each(navMenuNode.children, function(j, o) {
 		//是菜单组
 		if (o.menuType == '0') {
@@ -108,7 +89,7 @@ function openLeftMenu(navMenuNode) {
 				});
 			
 				menuLv2Group = $('<ul class="menuAccordion"></ul>');
-				//遍历3级菜单
+				//遍历三级菜单
 				$.each(o.children, function(idx, node) {
 					
 					if (node.visible == '1') {
@@ -120,9 +101,7 @@ function openLeftMenu(navMenuNode) {
 							$('.menuAccordion li[class="selected"]').removeClass('selected').addClass('unSelected');
 							$(this).removeClass('unSelected').addClass('selected');
 							
-							$('#page').panel({
-								href: '<%=path%>/forwardPage.do?address=' + node.address
-							});
+							$('#mainPage').attr('src', contextPath + '/forwardPage.do?address=' + node.address);
 						});
 						
 						
@@ -148,10 +127,13 @@ function openLeftMenu(navMenuNode) {
 				li.click(function() {
 					$('.menuAccordion li[class="selected"]').removeClass('selected').addClass('unSelected');
 					$(this).removeClass('unSelected').addClass('selected');
+					$('#mainPage').attr('src', contextPath + '/forwardPage.do?address=' + o.address);
 					
+					/*
 					$('#page').panel({
-						href: '<%=path%>/forwardPage.do?address=' + o.address
+						href: contextPath + '/forwardPage.do?address=' + o.address
 					});
+					*/
 				});
 				
 				menuLv2.append(li);
@@ -213,7 +195,7 @@ function test() {
 		
 	</div>
 	<div id="page" data-options="region:'center', border:true" > 
-		
+		<iframe id="mainPage" style="width: 100%; height: 100%; border: 0;"></iframe>
 	</div>
 
 	<div data-options="region:'south', border:true" style="height: 20px;"></div>
