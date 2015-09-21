@@ -1,15 +1,9 @@
 package com.bky.service.impl;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
-import oracle.net.aso.e;
-
-import org.apache.ibatis.session.SqlSession;
 import org.springframework.stereotype.Service;
 
 import com.bky.model.QueryEntity;
@@ -18,8 +12,6 @@ import com.bky.model.RoleModule;
 import com.bky.model.SysMenu;
 import com.bky.service.MenuService;
 import com.bky.util.EasyuiUtil;
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
@@ -47,28 +39,36 @@ public class MenuServiceImpl extends CommonDaoServiceImpl implements MenuService
 			String visible, String isValid, String pSid, String memo,
 			String sortId, String menuType, String iconClass) throws Exception {
 		
-		SysMenu m = new SysMenu();
-		m.setName(name);
-		m.setAddress(address);
-		m.setVisible(visible);
-		m.setIsValid(isValid);
+		SysMenu menuData = new SysMenu();
+		menuData.setName(name);
+		menuData.setAddress(address);
+		menuData.setVisible(visible);
+		menuData.setIsValid(isValid);
 		if (pSid != null && !pSid.trim().equals("")) {
-			m.setpSid(new BigDecimal(pSid));
+			menuData.setpSid(new BigDecimal(pSid));
+		} else {
+			menuData.setpSid(null);
 		}
-		m.setMemo(memo);
+		menuData.setMemo(memo);
 		if (sortId != null && !sortId.trim().equals("")) {
-			m.setSortId(new BigDecimal(sortId));
+			menuData.setSortId(new BigDecimal(sortId));
 		}
-		m.setMenuType(menuType);
-		m.setIconClass(iconClass);
+		menuData.setMenuType(menuType);
+		menuData.setIconClass(iconClass);
 		
 		SysMenu obj = (SysMenu) this.getCommonDao().searchObj("menu.getMenu", sid);
 		
 		if (obj == null) {
-			this.getCommonDao().insert("menu.insertMenu", m);
+			this.getCommonDao().insert("menu.insertMenu", menuData);
+			
+			//把父菜单更新成菜单组
+			SysMenu parentType = new SysMenu();
+			parentType.setSid(menuData.getpSid());
+			parentType.setMenuType("0");
+			this.getCommonDao().update("menu.updateMenu", parentType);
 		} else {
-			m.setSid(obj.getSid());
-			this.getCommonDao().update("menu.updateMenu", m);
+			menuData.setSid(obj.getSid());
+			this.getCommonDao().update("menu.updateMenu", menuData);
 		}
 		
 	}
@@ -105,6 +105,14 @@ public class MenuServiceImpl extends CommonDaoServiceImpl implements MenuService
 	public void deleteMenu(String sid) throws Exception {
 		this.getCommonDao().delete("menu.deleteMenuWithChild", sid);
 		this.getCommonDao().delete("menu.deleteMenuRole", sid);
+	}
+
+	@Override
+	public void changeParent(String menuSid, String pSid) throws Exception {
+		SysMenu menu = new SysMenu();
+		menu.setSid(new BigDecimal(menuSid));
+		menu.setpSid(new BigDecimal(pSid));
+		this.getCommonDao().update("menu.updateMenu", menu);
 	}
 	
 }

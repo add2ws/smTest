@@ -59,6 +59,20 @@ $(function() {
 		
 	});
 	
+	$('#isValidBtn').switchbutton({
+		onChange: function(r) {
+			var a = r?'1':'0';
+			$('#isValidEdit').val(a);
+		}
+	});
+	$('#visibleBtn').switchbutton({
+		onChange: function(r) {
+			var a = r?'1':'0';
+			$('#visibleEdit').val(a);
+		}
+	});
+	
+	
 });
 
 function loadMenu() {
@@ -66,6 +80,7 @@ function loadMenu() {
 		url: contextPath + '/menuTree.do',
 		lines: true,
 		animate: true,
+		dnd: true,
 		onLoadSuccess: function(node, data) {
 			var id = $('#menuSid').val();
 			if (!id) {
@@ -82,6 +97,52 @@ function loadMenu() {
 				return node.text;
 			}
 		},
+		onDrop: function(target, source, point) {
+			return false;
+			
+			var targetMenu = $(this).tree('getNode', target);
+			var dropSuccess = false;
+			if (source.pSid == targetMenu.sid) return false;
+			
+			if (targetMenu.menuType == 0) {
+				var url = contextPath + '/changeParent.do';
+				$.ajax({
+					url: url,
+					data: {menuSid: source.sid, pSid: targetMenu.sid},
+					async: false,
+					success: function(data) {
+						dropSuccess = data.success;
+						$.messager.show({
+			        		title: '提示信息',
+			        		msg: data.message,
+			        		timeout: 5000,
+			        		showType: 'slide'
+			        	});
+					},
+					dataType: 'json'
+				});				
+				
+			} else {
+				dropSuccess = false;
+				$.messager.alert('提示信息', '必须放入菜单组内');
+			}
+			
+			return dropSuccess;
+		},
+		onDragOver: function(target, source) {
+			
+			var targetMenu = $(this).tree('getNode', target);
+			
+			//不允许拖入非菜单组内
+			if (targetMenu.menuType != 0) {
+				return false;
+			} else {
+				/*
+				
+				*/
+				return true;
+			}
+		},
 		onCheck: function(node, checked) {
 
 		},
@@ -94,9 +155,9 @@ function loadMenu() {
 			if (node.menuType == '0') {
 				menuType = '菜单组';
 			} else if (node.menuType == '1') {
-				menuType = '脚本';
-			} else if (node.menuType == '2') {
 				menuType = 'iframe页面';
+			} else if (node.menuType == '2') {
+				menuType = '脚本';
 			}
 			
 			$('#menuSid').val(node.sid);
@@ -104,10 +165,10 @@ function loadMenu() {
 			$('#address').html(node.address);
 			$('#memo').html(node.memo);
 			$('#iconClassImg').removeClass().addClass(node.iconCls);
-//			$('#iconClass').html(node.iconClass);
 			$('#isValid').html(isValid);
 			$('#visible').html(visible);
 			$('#menuType').html(menuType);
+			$('#sortId').html(node.sortId);
 			
 			//选择了一级菜单
 			if (node.id == 0) {
@@ -120,43 +181,26 @@ function loadMenu() {
 				$('#roleBtn').linkbutton('enable');
 			}
 			
-			//如果选择了三级菜单则禁用添加子菜单按钮
-			var isBottomMenu = false;
+			//如果选择了三级菜单则禁用添加子菜单按钮和编辑菜单组
+			var is3LvMenu = false;
 			if (parent) {
 				var pp = $(this).tree('getParent', parent.target);
 				if (pp) {
 					pp = $(this).tree('getParent', pp.target);
 					if (pp) {
-						isBottomMenu = true;
+						is3LvMenu = true;
 					} 
 				}
 			}
-			if (isBottomMenu) {
+			if (is3LvMenu) {
 				$('#childBtn').linkbutton('disable');
+				$('#menuTypeEdit[value="0"]').attr('disabled', 'disabled');
 			} else {
 				$('#childBtn').linkbutton('enable');
+				$('#menuTypeEdit[value="0"]').removeAttr('disabled');
 			}
 		}
 	});
-}
-
-function submitForm(){
-    $('#editForm').form('submit',{
-    	url: contextPath + '/saveMenu.do',
-        onSubmit: function(){
-            return $(this).form('enableValidation').form('validate');
-        },
-        success: function(data) {
-        	data = $.parseJSON(data);
-        	$.messager.show({
-        		title: '提示信息',
-        		msg: data.message,
-        		timeout: 3000,
-        		showType: 'slide'
-        	});
-        	$('#sysMenuTree').tree('reload');
-        }
-    });
 }
 
 function deleteMenu() {
@@ -182,38 +226,49 @@ function deleteMenu() {
 }
 
 function addChildMenu() {
-	editMenu(true);
+	var node = $('#sysMenuTree').tree('getSelected');
+	$('#parentNameEdit').html(node.name);
+	$('#sidEdit').val('');
+	$('#pSidEdit').val(node.sid);
+	$('#nameEdit').textbox('setValue', '');
+	$('#addressEdit').textbox('setValue', '');
+	$('#memoEdit').textbox('setValue', '');
+	$('#isValidBtn').switchbutton('check');
+	$('#visibleBtn').switchbutton('check');
+	$('#iconClassEdit').combobox('select', 'icon-blank');
+	$('#menuTypeEdit[value="1"]').click();
+	$('#sortIdEdit').numberspinner('setValue', 0);
+	
+	openEditMenuWindow();
 }
-function editMenu(add) {
+
+function editMenu() {
 	var node = $('#sysMenuTree').tree('getSelected');
 	$('#parentNameEdit').html( $('#sysMenuTree').tree('getParent', node.target).name);
-	
-	if (add) {
-		$('#nameEdit').textbox('setValue', '');
-		$('#addressEdit').textbox('setValue', '');
-		$('#memoEdit').textbox('setValue', '');
-		$('#isValidEdit').switchbutton('check');
-		$('#visibleEdit').switchbutton('check');
-		$('#iconClassEdit').combobox('select', 'icon-blank');
-
+	$('#sidEdit').val(node.sid);
+	$('#pSidEdit').val('');
+	$('#nameEdit').textbox('setValue', node.name);
+	$('#addressEdit').textbox('setValue', node.address);
+	$('#memoEdit').textbox('setValue', node.memo);
+	if (node.isValid == '1') {
+		$('#isValidBtn').switchbutton('check');
 	} else {
-		$('#nameEdit').textbox('setValue', node.name);
-		$('#addressEdit').textbox('setValue', node.address);
-		$('#memoEdit').textbox('setValue', node.memo);
-		if (node.isValid == '1') {
-			$('#isValidEdit').switchbutton('check');
-		} else {
-			$('#isValidEdit').switchbutton('uncheck');
-		}
-		if (node.visible == '1') {
-			$('#visibleEdit').switchbutton('check');
-		} else {
-			$('#visibleEdit').switchbutton('uncheck');
-		}
-		$('#iconClassEdit').combobox('select', node.iconCls);
+		$('#isValidBtn').switchbutton('uncheck');
 	}
+	if (node.visible == '1') {
+		$('#visibleBtn').switchbutton('check');
+	} else {
+		$('#visibleBtn').switchbutton('uncheck');
+	}
+	$('#iconClassEdit').combobox('select', node.iconCls);
+	$('#menuTypeEdit[value="' + node.menuType + '"]').click();
+	$('#sortIdEdit').numberspinner('setValue', node.sortId);
 	
-	$("#editMenu").dialog({
+	openEditMenuWindow();
+}
+
+function openEditMenuWindow() {
+	$("#editMenuWindow").dialog({
 		
 		buttons : [ {
 			text : "保存",
@@ -235,7 +290,7 @@ function editMenu(add) {
 				        	
 				        	if (data.success) {
 					        	$('#sysMenuTree').tree({url: contextPath + '/menuTree.do'});
-					        	$("#editMenu").dialog("close");
+					        	$("#editMenuWindow").dialog("close");
 				        	}
 				        }
 				    });
@@ -245,15 +300,16 @@ function editMenu(add) {
 			text : "取消",
 			iconCls : "icon-cancel",
 			handler : function() {
-				$("#editMenu").dialog("close");
+				$("#editMenuWindow").dialog("close");
 			}
 		} ]
 	});
 	
-	$('#editMenu').dialog('center');
-	$('#editMenu').dialog('open');
-	
-}
+	$('#editMenuWindow').dialog('center');
+	$('#editMenuWindow').dialog('open');
+
+};
+
 
 var modifyAuths = {};
 function saveAuths() {
@@ -408,7 +464,7 @@ function authority() {
 </head>
 <body>
 <div class="easyui-layout" fit="true">
-	<div id="lm" data-options="region:'west', split:true, border:true, collapsible:false" style="width: 350px; padding: 8px; ">
+	<div data-options="region:'west', split:true, border:true, collapsible:false" style="width: 350px; padding: 8px; ">
 		<!-- 
 		<input id="searchBox" style=""/>
 		 -->
@@ -449,6 +505,10 @@ function authority() {
                   <td><span id="memo"></span> </td>
               </tr>
               <tr>
+                  <th>排序号:</th>
+                  <td><span id="sortId"></span> </td>
+              </tr>
+              <tr>
                   <th>操作:</th>
                   <td> 
                   	<a id="editBtn" data-options="disabled:true" href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-edit" onclick="editMenu()" plain="true">编辑</a>
@@ -462,47 +522,43 @@ function authority() {
 	</div>
 	
 	<!-- 子菜单编辑窗口 -->
-	<div id="editMenu" class="easyui-dialog" data-options="closed:true, iconCls:'icon-menu', width:500, modal:true, title:'编辑菜单', maximizable:false, minimizable:false, resizable:false">
+	<div id="editMenuWindow" class="easyui-dialog" data-options="closed:true, iconCls:'icon-menu', width:660, modal:true, title:'编辑菜单', maximizable:false, minimizable:false, resizable:true">
 		<form class="easyui-form" id="editForm" method="post">
   			<input type="hidden" style="display: none;" name="sid" id="sidEdit" value=""/>
   			<input type="hidden" style="display: none;" name="pSid" id="pSidEdit" value=""/>
             <table class="formTableStyle">
              	<tr>
-                    <th width="120">父菜单名称：</th>
-                    <td><span id="parentNameEdit"></span></td>
-                </tr>
-            	<tr>
-                    <th>菜单类型：</th>
-                    <td>
+                    <th width="100">父菜单名称：</th>
+                    <td width="160"><span id="parentNameEdit"></span></td>
+                    <th width="100">菜单类型：</th>
+                    <td width="220">
                     	<label>
-							<input name="menuType" type="radio" checked="checked" value="1"/>脚本
+							<input name="menuType" id="menuTypeEdit" type="radio" value="1"/>iframe页面
 						</label>&nbsp;
 						<label>
-							<input name="menuType" type="radio" value="2"/>iframe页面
+							<input name="menuType" id="menuTypeEdit" type="radio" checked="checked" value="2"/>脚本
 						</label>&nbsp;
 						<label>
-							<input name="menuType" type="radio" value="0"/>菜单组
+							<input name="menuType" id="menuTypeEdit" type="radio" value="0"/>菜单组
 						</label>
 					</td>
                 </tr>
                 <tr>
                     <th>菜单名称：</th>
                     <td><input name="name" id="nameEdit" class="easyui-textbox" data-options="required:true"></input></td>
-                </tr>
-                <tr>
                     <th>模块地址：</th>
                     <td><input name="address" id="addressEdit" class="easyui-textbox"></input></td>
                 </tr>
                 <tr>
                     <th>是否有效：</th>
                     <td>
-                    	<input class="easyui-switchbutton" name="isValid" id="isValidEdit" onText="是" offText="否" style="height: 20px; width: 45px;">
+                    	<input class="easyui-switchbutton" id="isValidBtn" onText="是" offText="否" style="height: 23px; width: 45px;">
+						<input name="isValid" id="isValidEdit" type="hidden" value="1" style="display: none;"/>
 					</td>
-                </tr>
-                <tr>
                     <th>是否可见：</th>
                     <td>
-						<input class="easyui-switchbutton" name="visible" id="visibleEdit" onText="是" offText="否" style="height: 20px; width: 45px;" >
+						<input class="easyui-switchbutton" id="visibleBtn" onText="是" offText="否" style="height: 23px; width: 45px;" >
+						<input name="visible" id="visibleEdit" type="hidden" value="1" style="display: none;"/>
 					</td>
                 </tr>
                 <tr>
@@ -510,11 +566,13 @@ function authority() {
                     <td>
                     	<select name="iconClass" id="iconClassEdit" class="easyui-combobox" style="width: 142px;" ></select>
 					</td>
-                </tr>
-                <tr>
                     <th>说明：</th>
                     <td><input name="memo" id="memoEdit" class="easyui-textbox"></input></td>
                 </tr>
+                 <tr>
+	                  <th>排序号:</th>
+	                  <td colspan="3"><input name="sortId" id="sortIdEdit" value="0" class="easyui-numberspinner" style="width:142px;" required="required" data-options="max:9999,editable:true"/></td>
+              	</tr>
             </table>
         </form>
 	</div>

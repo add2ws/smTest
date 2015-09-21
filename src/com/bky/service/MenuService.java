@@ -20,5 +20,7 @@ public interface MenuService {
 	public void modifyAuths(String menuSid) throws Exception;
 
 	public void deleteMenu(String sid) throws Exception;
+
+	public void changeParent(String menuSid, String pSid) throws Exception;
 	
 }

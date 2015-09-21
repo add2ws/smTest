@@ -71,12 +71,11 @@ $(function() {
 		}, {
 			field: 'operatorField',
 			title: '操作',
-			width: 230,
+			width: 140,
 			align: 'center',
 			fixed: true,
 			formatter: function(val, row, idx) {
-//				return '<table cellpadding="0" cellspacing="0" border="0"><tr><td><a  class="easyui-linkbutton" iconCls="icon-role" onclick="selectRoles(\'' + row.sid + '\')">分配角色</a></td><td><a class="datagrid-btn-separator"></a></td><td><a  class="easyui-linkbutton" iconCls="icon-edit" onclick="editRow(true, ' + idx + ')">编辑</a></td><td><a class="datagrid-btn-separator"></a></td><td><a   class="easyui-linkbutton" iconCls="icon-cancel" onclick="deleteRow(\'' + row.sid + '\')">删除</a></td></tr></table>';
-				return '<a class="easyui-linkbutton" iconCls="icon-role" onclick="selectRoles(\'' + row.sid + '\')">分配角色</a>&nbsp;<a class="easyui-linkbutton" iconCls="icon-edit" onclick="editUser(' + idx + ')">编辑</a>&nbsp;<a class="easyui-linkbutton" iconCls="icon-cancel" onclick="deleteUser(\'' + row.sid + '\')">删除</a>';
+				return '<a class="easyui-linkbutton" iconCls="icon-edit" onclick="editUser(' + idx + ')">编辑</a>&nbsp;<a class="easyui-linkbutton" iconCls="icon-cancel" onclick="deleteUser(\'' + row.sid + '\')">删除</a>';
 
 			}
 		}
@@ -105,7 +104,7 @@ function deleteUser(userSid) {
 	});
 }
 
-var changedRoles = {};
+var userRoles = {};
 //角色列表载入
 function roleListInit(userSid) {
 	
@@ -130,7 +129,7 @@ function roleListInit(userSid) {
 				onChange: function(r) {
 					var sid = $(this).attr('id').split('@')[0];
 					var name = $(this).attr('id').split('@')[1];
-					changedRoles[sid] = [r, name];
+					userRoles[sid] = [r, name];
 					$('#saveRolesBtn').linkbutton('enable');
 				}
 			});
@@ -152,10 +151,13 @@ function roleListInit(userSid) {
 			fixed: true,
 			formatter: function(val, row, idx) {
 				var checked = '';
-				if (changedRoles[row.sid] == undefined) {
-					checked = val?'checked':'';
+				if (userRoles[row.sid] == undefined) {
+					if (val) {
+						checked = 'checked';
+						userRoles[row.sid] = [true, row.roleName];
+					}
 				} else {
-					checked = changedRoles[row.sid][0]?'checked':'';
+					checked = userRoles[row.sid][0]?'checked':'';
 				}
 				
 				var html = '<input id="'+ row.sid +'@' + row.roleName + '" class="easyui-switchbutton" onText="已分配" offText="未分配" style="width: 70px;" ' + checked + '/>';
@@ -168,16 +170,16 @@ function roleListInit(userSid) {
 	});
 
 }
-//点击分配角色按钮
+/*点击分配角色按钮
 function selectRoles(userSid) {
-	changedRoles = {};
+	userRoles = {};
 	
 	$("#roleWindow").dialog({closable: true});
 	$('#cancelSaveRolesBtn').show();
 	$('#saveRolesBtn').linkbutton('disable');
 	$('#saveRolesBtn').linkbutton({
 		onClick: function() {
-			var rs = JSON.stringify(changedRoles);
+			var rs = JSON.stringify(userRoles);
 			$('#roles').val(rs);
 			$('#roleWindow').dialog('close');
 		}
@@ -185,19 +187,19 @@ function selectRoles(userSid) {
 	roleListInit(userSid);
 	$("#roleWindow").dialog('center');
 	$("#roleWindow").dialog('open');
-}
+}*/
 
-//点击添加所属角色按钮
+//点击所属角色按钮
 function addRoles() {
 	$("#roleWindow").dialog({closable: false});
 	$('#cancelSaveRolesBtn').hide();
 	$('#saveRolesBtn').linkbutton('enable');
 	$('#saveRolesBtn').linkbutton({
 		onClick: function() {
-			var rs = JSON.stringify(changedRoles);
+			var rs = JSON.stringify(userRoles);
 			$('#roles').val(rs);
 			var names = '';
-			$.each(changedRoles, function(i, e) {
+			$.each(userRoles, function(i, e) {
 				if (e[0]) {
 					names += e[1] + ',';
 				}
@@ -207,7 +209,6 @@ function addRoles() {
 			$('#roleWindow').dialog('close');
 		}
 	});
-	roleListInit(null);
 	$("#roleWindow").dialog('center');
 	$("#roleWindow").dialog('open');
 }
@@ -218,6 +219,7 @@ function editUser(idx) {
 	var row = $('#list').datagrid('getRows')[idx];
 	$('#useridEdit').textbox('setValue', row.userid);
 	$('#roleNames').html(row.roles);
+	roleListInit(row.sid);
 	
 	$("#editUserWindow").dialog('center');
 	$("#editUserWindow").dialog('open');
@@ -230,7 +232,9 @@ function addUser() {
 	$('#passwordConfirmEdit').textbox('setValue', '');
 	$('#roles').val('');
 	$('#roleNames').html('');
-	changedRoles = {};
+	roleListInit(null);
+	
+	userRoles = {};
 	$("#editUserWindow").dialog('center');
 	$("#editUserWindow").dialog('open');
 }
@@ -257,7 +261,7 @@ function saveUser(add) {
         	});
         	
         	if (data.success) {
-	        	changedRoles = {};
+	        	userRoles = {};
         		$('#list').datagrid('reload');
 	        	$("#editUserWindow").dialog("close");
         	}
@@ -268,7 +272,7 @@ function saveUser(add) {
 
 //取消保存账户信息
 function cancelSaveUser() {
-	changedRoles = {};
+	userRoles = {};
 	$("#editUserWindow").dialog('close');
 }
 

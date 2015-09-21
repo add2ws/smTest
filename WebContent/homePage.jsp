@@ -37,6 +37,7 @@ $(document).ready(function() {
 				//绑定打开左侧菜单事件
 				li.click(function() {
 					if (curOpen != e.id) {
+						$('#mainPage').attr('src', '');
 						openLeftMenu(e);
 						curOpen = e.id;
 						$('.navMenuList li[class="selected"]').removeClass('selected').addClass('unSelected');
@@ -81,6 +82,7 @@ function openLeftMenu(navMenuNode) {
 		//是菜单组
 		if (o.menuType == '0') {
 			
+			if (o.visible != '1') return true;
 			var menuLv2Group = null;
 			//按sort_id菜单排序
 			if (o.children) {

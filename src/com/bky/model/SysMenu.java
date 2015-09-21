@@ -20,7 +20,7 @@ public class SysMenu {
 	private int id;
 	private String text;
 	private String iconCls;
-	private List<SysMenu> children;
+	private List<SysMenu> children = new ArrayList<SysMenu>();
 	private String state;
 	
 	public void addChildren(SysMenu m) {

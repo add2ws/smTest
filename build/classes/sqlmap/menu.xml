@@ -33,9 +33,9 @@
   		#{address,jdbcType=VARCHAR},
   		#{visible,jdbcType=VARCHAR},
   		#{isValid,jdbcType=VARCHAR},
-  		#{pSid,jdbcType=VARCHAR},
+  		#{pSid,jdbcType=NUMERIC},
   		#{memo,jdbcType=VARCHAR},
-  		#{sortId,jdbcType=VARCHAR},
+  		#{sortId,jdbcType=NUMERIC},
   		#{menuType,jdbcType=VARCHAR},
   		#{iconClass,jdbcType=VARCHAR}
   	)

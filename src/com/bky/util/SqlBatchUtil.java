@@ -112,7 +112,6 @@ public class SqlBatchUtil {
 	public static void batchDelete(SqlSessionFactory sqlSessionFactory, final String sqlId, final List<?> paramList) {
 
 		if (paramList != null) {
-
 			SqlSession sqlSession = sqlSessionFactory.openSession(
 					ExecutorType.SIMPLE, false);
 			try {

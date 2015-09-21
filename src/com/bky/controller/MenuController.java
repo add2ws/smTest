@@ -80,7 +80,21 @@ public class MenuController {
 		}
 		return responseEntity;
 	}
-	
+
+	@RequestMapping("changeParent")
+	@ResponseBody
+	public Object changeParent(@RequestParam("menuSid") String menuSid, @RequestParam("pSid") String pSid) {
+		try {
+			menuService.changeParent(menuSid, pSid);
+			responseEntity.setSuccess(true);
+			responseEntity.setMessage("变更父菜单成功");
+		} catch (Exception e) {
+			responseEntity.setSuccess(false);
+			responseEntity.setMessage(e.getMessage());
+			e.printStackTrace();
+		}
+		return responseEntity;
+	}
 	
 	@RequestMapping("menu2RoleList")
 	@ResponseBody
