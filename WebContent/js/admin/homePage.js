@@ -1,20 +1,7 @@
-<%@ page language="java" contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
-<%
-String path = request.getContextPath();
-String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+path+"/";
-%>
-
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-<html>
-<head>
-<title>信息管理系统</title> 
-<jsp:include page="/page/inc_header.jsp"></jsp:include>
-<link rel="stylesheet" type="text/css" href="<%=path%>/css/homePage.css?a=<%=Math.random() %>" >
-<script type="text/javascript">
 
 $(document).ready(function() {
 
-	var url = contextPath + '/loginMenuTree.do?rid=1';
+	var url = contextPath + '/loginMenuTree.do?rid=1900';
 	$.post(url, {}, function(data) {
 		var root = data[0];
 		
@@ -152,55 +139,3 @@ function openLeftMenu(navMenuNode) {
 	leftMenu.accordion('select', 0);
 	
 }
-
-function test() {
-	
-	$.messager.prompt('My Title', 'Please type something', function(r){
-		if (r){
-			alert('you type: '+r);
-		}
-	});
-}
-</script>
-</head>
-<body class="easyui-layout" >
-	<div data-options="region:'north', border:true" style="height: 126px; position: relative; background-image: url('images/banner.jpg'); background-repeat: repeat-x;">
-		<!-- 
-		<div style="padding:3px;  position: absolute; top: 0px; right: 0px;">
-			<a href="http://localhost:8080/ums/index.do" class="easyui-linkbutton topMenu" data-options="plain:true">Home</a>
-			<a href="javascript:;" class="easyui-linkbutton topMenu" data-options="plain:true,iconCls:'icon-help'" onclick="test()">测试按钮</a>
-			<a href="#" class="easyui-menubutton topMenu" data-options="menu:'#mm2',iconCls:'icon-gear'">系统配置</a>
-			<div id="mm2" style="width:100px;">
-				<div onclick="$('#dlg').dialog('open')">logo配置</div>
-				<div>项目名称配置</div>
-				<div onclick="$('#page').panel({href: 'menu.jsp'})">数据库连接管理</div>
-				<div onclick="$('#page').panel('refresh', 'showViewList.do?conId=0')">视图配置</div>
-	        	<div onclick="$('#page').panel({href: 'disabled.jsp'})">统计模型</div>
-	        	<div onclick="$('#page').panel({href: 'test.jsp'})">测试界面</div>
-	        	<div onclick="$('#page').panel({href: 'framework.jsp'})">菜单配置</div>
-	        	<div onclick="initMenu();">加载菜单</div>
-	        	<div onclick="clearMenu();">清除菜单</div>
-			</div>
-			<a href="#" class="easyui-menubutton topMenu" data-options="menu:'#mm3',iconCls:'icon-help'">关于</a>
-			<div id="mm3" class="menu-content" style="background:#f0f0f0;padding:10px;text-align:left">
-				<img src="jquery-easyui-1.3.2/1589403196.jpg" style="width:150px;height:90px">
-				<p style="">信息管理系统</p>
-			</div>
-		</div>
-		 -->
-		<ul id="navMenu" class="navMenuList" style="">
-			<li>菜单加载中...</li>
-		</ul>
-	</div>
-	
-	<div id="leftLayout" data-options="region:'west',split:true,title:'',iconCls:'',border:true" style="width: 210px;">
-		
-	</div>
-	<div id="page" data-options="region:'center', border:true, maximizable:true" > 
-		<iframe id="mainPage" style="width: 100%; height: 100%; border: 0;"></iframe>
-	</div>
-
-	<div data-options="region:'south', border:true" style="height: 20px;"></div>
-</body>
-
-</html>

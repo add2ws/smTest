@@ -20,6 +20,7 @@ $(function() {
 		fit: true,
 		remoteSort: true,
 		toolbar: '#divToolbar',
+		nowrap: false,
 		pagination: true,
 		rownumbers: true,
 		fitColumns: true,
@@ -283,6 +284,22 @@ function doSearch(value) {
 	$('#list').datagrid('load', queryParams);
 }
 
+$.extend($.fn.validatebox.defaults.rules, {    
+    equals: {    
+        validator: function(value, param){
+            return value == $(param[0]).val();    
+        },    
+        message: '两次密码输入不一致'   
+    },
+    
+    existUserid: {
+    	validator: function(value) {
+    		var url = contextPath + '/existUserid.do';
+    	},
+    	message: '该登录名已存在，请重新输入'
+    } 
+});
+
 </script>
 </head>
 
@@ -325,10 +342,18 @@ function doSearch(value) {
 		<table class="formTableStyle">
 			<tr>
 				<th style="width: 40%;">
+					账户名
+				</th>
+				<td style="">
+					<input name="username"  id="usernameEdit" class="easyui-textbox" style="width: 90%;" />	
+				</td>
+			</tr>
+			<tr>
+				<th style="width: 40%;">
 					登录名
 				</th>
 				<td style="">
-					<input name="userid"  id="useridEdit" class="easyui-textbox" required="true" style="width: 90%;" validType="maxLength[5]" missingMessage="名称不能为空"/>	
+					<input name="userid" id="useridEdit" class="easyui-textbox validatebox" required="true" style="width: 90%;" validType="length[1,15]" missingMessage="名称不能为空"/>	
 				</td>
 			</tr>
 			<tr>
@@ -344,7 +369,7 @@ function doSearch(value) {
 					确认密码
 				</th>
 				<td>
-					<input type="password" id="passwordConfirmEdit" class="easyui-textbox" required="true" style="width: 90%;">	
+					<input type="password" id="passwordConfirmEdit" class="easyui-textbox" required="true" style="width: 90%;" validType="equals['#password']">	
 				</td>
 			</tr>
 			<!-- 

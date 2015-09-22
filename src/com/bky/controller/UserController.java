@@ -65,4 +65,20 @@ public class UserController {
 		
 		return responseEntity;
 	}
+	
+	@RequestMapping("existUserid")
+	@ResponseBody
+	public Object existUserid(@RequestParam(value="userid", defaultValue="") String userid) {
+		try {
+			System.out.println(userid);
+			responseEntity.setSuccess(true);
+			responseEntity.setMessage("删除成功");
+		} catch (Exception e) {
+			responseEntity.setSuccess(false);
+			responseEntity.setMessage(e.getMessage());
+			e.printStackTrace();
+		}
+		
+		return responseEntity;
+	}
 }
